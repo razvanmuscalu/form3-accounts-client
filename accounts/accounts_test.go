@@ -109,7 +109,7 @@ func TestCreateAccountWithInvalidCountry(t *testing.T) {
 		_, err := AccountsService.Create(DataRequest)
 
 		Convey("An appropriate error is propagated to the caller", func() {
-			So(err.Error(), ShouldContainSubstring, "country in body should match")
+			So(err.Error(), ShouldContainSubstring, "Invalid Country [GBR]")
 		})
 	})
 }
@@ -134,7 +134,7 @@ func TestCreateAccountWithInvalidBaseCurrency(t *testing.T) {
 		_, err := AccountsService.Create(DataRequest)
 
 		Convey("An appropriate error is propagated to the caller", func() {
-			So(err.Error(), ShouldContainSubstring, "base_currency in body should match")
+			So(err.Error(), ShouldContainSubstring, "Invalid BaseCurrency [GBPP]")
 		})
 	})
 }
@@ -159,7 +159,7 @@ func TestCreateAccountWithInvalidBankID(t *testing.T) {
 		_, err := AccountsService.Create(DataRequest)
 
 		Convey("An appropriate error is propagated to the caller", func() {
-			So(err.Error(), ShouldContainSubstring, "bank_id in body should match")
+			So(err.Error(), ShouldContainSubstring, "Invalid BankID [aStringLongerThanElevenCharacters]")
 		})
 	})
 }
@@ -184,7 +184,7 @@ func TestCreateAccountWithInvalidBIC(t *testing.T) {
 		_, err := AccountsService.Create(DataRequest)
 
 		Convey("An appropriate error is propagated to the caller", func() {
-			So(err.Error(), ShouldContainSubstring, "bic in body should match")
+			So(err.Error(), ShouldContainSubstring, "Invalid BIC [aStringLongerThanElevenCharacters]")
 		})
 	})
 }
@@ -193,7 +193,7 @@ func TestCreateAccountWithInvalidAccountClassification(t *testing.T) {
 	Convey("When I Create an account with invalid AccountClassification", t, func() {
 		ID := uuid.New().String()
 
-		AccountClassification := "UNKNOWN"
+		AccountClassification := "unknown"
 
 		DataRequest := DataRequest{
 			Data: Data{
@@ -209,7 +209,7 @@ func TestCreateAccountWithInvalidAccountClassification(t *testing.T) {
 		_, err := AccountsService.Create(DataRequest)
 
 		Convey("An appropriate error is propagated to the caller", func() {
-			So(err.Error(), ShouldContainSubstring, "account_classification in body should be one of")
+			So(err.Error(), ShouldContainSubstring, "Invalid AccountClassification [unknown]")
 		})
 	})
 }
@@ -234,7 +234,7 @@ func TestCreateAccountWithInvalidAlternativeBankAccountNames(t *testing.T) {
 		_, err := AccountsService.Create(DataRequest)
 
 		Convey("An appropriate error is propagated to the caller", func() {
-			So(err.Error(), ShouldContainSubstring, "alternative_bank_account_names in body should have at most 3 items")
+			So(err.Error(), ShouldContainSubstring, "Invalid AlternativeBankAccountNames [Peters Michaels Johns Bens]")
 		})
 	})
 }
