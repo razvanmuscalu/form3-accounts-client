@@ -1,4 +1,4 @@
-package main
+package accounts
 
 // DataRequest is the request payload used when creating an account
 type DataRequest struct {
