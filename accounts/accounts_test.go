@@ -3,42 +3,238 @@ package accounts
 import (
 	"testing"
 
+	"github.com/google/uuid"
+
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestFetch(t *testing.T) {
-	service := Service{URL: ""}
+var (
+	AccountsService = Service{URL: "http://localhost:8080"}
+	OrganisationID  = uuid.New().String()
+	Type            = "accounts"
+)
 
-	Convey("When I Fetch accounts", t, func() {
-		resp, _ := service.Fetch("c24e60c2-9dcb-466a-8fc4-fdf19c630b29")
+func TestCreateBareMinimumAccount(t *testing.T) {
+	Convey("When I Create an account with only required fields", t, func() {
+		ID := uuid.New().String()
 
-		Convey("The AccountNumber should match", func() {
-			So(*resp.Data.Attributes.AccountNumber, ShouldEqual, "123")
+		DataRequest := DataRequest{
+			Data: Data{
+				Attributes:     Account{Country: "GB"},
+				ID:             ID,
+				Type:           Type,
+				OrganisationID: OrganisationID,
+			}}
+
+		resp, _ := AccountsService.Create(DataRequest)
+
+		Convey("The required account fields shout equal", func() {
+			So(resp.Data.Attributes, ShouldResemble, Account{Country: "GB"})
 		})
 
-		Convey("The FirstName should match", func() {
-			So(*resp.Data.Attributes.FirstName, ShouldEqual, "razvan")
+		Convey("And the required data fields shout equal", func() {
+			So(resp.Data.ID, ShouldEqual, ID)
+			So(resp.Data.OrganisationID, ShouldEqual, OrganisationID)
+			So(resp.Data.Type, ShouldEqual, Type)
 		})
 	})
 }
 
-func TestCreate(t *testing.T) {
-	service := Service{URL: "http://localhost:8080"}
+func TestCreateFullAccount(t *testing.T) {
+	Convey("When I Create an account with all fields", t, func() {
+		ID := uuid.New().String()
 
-	account := Account{Country: "GB"}
-	data := Data{
-		Attributes:     account,
-		ID:             "c24e60c2-9dcb-466a-8fc4-fdf19c630b29",
-		Type:           "accounts",
-		OrganisationID: "ec88b87d-40d5-46b8-8133-98079904ce4b",
-	}
-	dataRequest := DataRequest{Data: data}
+		BaseCurrency := "GBP"
+		BankID := "400302"
+		BankIDCode := "GBDSC"
+		AccountNumber := "10000004"
+		BIC := "NWBKGB42"
+		IBAN := "GB28NWBK40030212764204"
+		CustomerID := "234"
+		Title := "Sie"
+		FirstName := "Mary-Jane Doe"
+		BankAccountName := "Smith"
+		AlternativeBankAccountNames := []string{"Peters"}
+		AccountClassification := "Personal"
+		JointAccount := false
+		AccountMatchingOptOut := false
+		SecondaryIdentification := "44516"
 
-	Convey("When I Create an account", t, func() {
-		resp, _ := service.Create(dataRequest)
+		Account := Account{
+			Country:                     "GB",
+			BaseCurrency:                &BaseCurrency,
+			BankID:                      &BankID,
+			BankIDCode:                  &BankIDCode,
+			AccountNumber:               &AccountNumber,
+			BIC:                         &BIC,
+			IBAN:                        &IBAN,
+			CustomerID:                  &CustomerID,
+			Title:                       &Title,
+			FirstName:                   &FirstName,
+			BankAccountName:             &BankAccountName,
+			AlternativeBankAccountNames: &AlternativeBankAccountNames,
+			AccountClassification:       &AccountClassification,
+			JointAccount:                &JointAccount,
+			AccountMatchingOptOut:       &AccountMatchingOptOut,
+			SecondaryIdentification:     &SecondaryIdentification,
+		}
+		DataRequest := DataRequest{
+			Data: Data{
+				Attributes:     Account,
+				ID:             ID,
+				Type:           Type,
+				OrganisationID: OrganisationID,
+			}}
 
-		Convey("The Country should match", func() {
-			So(resp.Data.Attributes.Country, ShouldEqual, "GB")
+		resp, _ := AccountsService.Create(DataRequest)
+
+		Convey("All the account fields shout equal", func() {
+			So(resp.Data.Attributes, ShouldResemble, Account)
+		})
+	})
+}
+
+func TestCreateAccountWithInvalidCountry(t *testing.T) {
+	Convey("When I Create an account with invalid Country", t, func() {
+		ID := uuid.New().String()
+
+		DataRequest := DataRequest{
+			Data: Data{
+				Attributes:     Account{Country: "GBR"},
+				ID:             ID,
+				Type:           Type,
+				OrganisationID: OrganisationID,
+			}}
+
+		_, err := AccountsService.Create(DataRequest)
+
+		Convey("An appropriate error is propagated to the caller", func() {
+			So(err.Error(), ShouldContainSubstring, "country in body should match")
+		})
+	})
+}
+
+func TestCreateAccountWithInvalidBaseCurrency(t *testing.T) {
+	Convey("When I Create an account with invalid BaseCurrency", t, func() {
+		ID := uuid.New().String()
+
+		BaseCurrency := "GBPP"
+
+		DataRequest := DataRequest{
+			Data: Data{
+				Attributes: Account{
+					Country:      "GB",
+					BaseCurrency: &BaseCurrency,
+				},
+				ID:             ID,
+				Type:           Type,
+				OrganisationID: OrganisationID,
+			}}
+
+		_, err := AccountsService.Create(DataRequest)
+
+		Convey("An appropriate error is propagated to the caller", func() {
+			So(err.Error(), ShouldContainSubstring, "base_currency in body should match")
+		})
+	})
+}
+
+func TestCreateAccountWithInvalidBankID(t *testing.T) {
+	Convey("When I Create an account with invalid BankID", t, func() {
+		ID := uuid.New().String()
+
+		BankID := "aStringLongerThanElevenCharacters"
+
+		DataRequest := DataRequest{
+			Data: Data{
+				Attributes: Account{
+					Country: "GB",
+					BankID:  &BankID,
+				},
+				ID:             ID,
+				Type:           Type,
+				OrganisationID: OrganisationID,
+			}}
+
+		_, err := AccountsService.Create(DataRequest)
+
+		Convey("An appropriate error is propagated to the caller", func() {
+			So(err.Error(), ShouldContainSubstring, "bank_id in body should match")
+		})
+	})
+}
+
+func TestCreateAccountWithInvalidBIC(t *testing.T) {
+	Convey("When I Create an account with invalid BIC", t, func() {
+		ID := uuid.New().String()
+
+		BIC := "aStringLongerThanElevenCharacters"
+
+		DataRequest := DataRequest{
+			Data: Data{
+				Attributes: Account{
+					Country: "GB",
+					BIC:     &BIC,
+				},
+				ID:             ID,
+				Type:           Type,
+				OrganisationID: OrganisationID,
+			}}
+
+		_, err := AccountsService.Create(DataRequest)
+
+		Convey("An appropriate error is propagated to the caller", func() {
+			So(err.Error(), ShouldContainSubstring, "bic in body should match")
+		})
+	})
+}
+
+func TestCreateAccountWithInvalidAccountClassification(t *testing.T) {
+	Convey("When I Create an account with invalid AccountClassification", t, func() {
+		ID := uuid.New().String()
+
+		AccountClassification := "UNKNOWN"
+
+		DataRequest := DataRequest{
+			Data: Data{
+				Attributes: Account{
+					Country:               "GB",
+					AccountClassification: &AccountClassification,
+				},
+				ID:             ID,
+				Type:           Type,
+				OrganisationID: OrganisationID,
+			}}
+
+		_, err := AccountsService.Create(DataRequest)
+
+		Convey("An appropriate error is propagated to the caller", func() {
+			So(err.Error(), ShouldContainSubstring, "account_classification in body should be one of")
+		})
+	})
+}
+
+func TestCreateAccountWithInvalidAlternativeBankAccountNames(t *testing.T) {
+	Convey("When I Create an account with invalid AlternativeBankAccountNames", t, func() {
+		ID := uuid.New().String()
+
+		AlternativeBankAccountNames := []string{"Peters", "Michaels", "Johns", "Bens"}
+
+		DataRequest := DataRequest{
+			Data: Data{
+				Attributes: Account{
+					Country:                     "GB",
+					AlternativeBankAccountNames: &AlternativeBankAccountNames,
+				},
+				ID:             ID,
+				Type:           Type,
+				OrganisationID: OrganisationID,
+			}}
+
+		_, err := AccountsService.Create(DataRequest)
+
+		Convey("An appropriate error is propagated to the caller", func() {
+			So(err.Error(), ShouldContainSubstring, "alternative_bank_account_names in body should have at most 3 items")
 		})
 	})
 }

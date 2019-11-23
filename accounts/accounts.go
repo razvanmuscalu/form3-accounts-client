@@ -3,6 +3,7 @@ package accounts
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"time"
 )
@@ -37,10 +38,18 @@ func (as Service) Create(request DataRequest) (Single, error) {
 		println("ERROR: ")
 	}
 
+	if resp.StatusCode != 201 {
+		var result ErrorResponse
+		json.NewDecoder(resp.Body).Decode(&result)
+
+		return Single{}, errors.New(result.ErrorMessage)
+	}
+
 	var result Single
 	json.NewDecoder(resp.Body).Decode(&result)
 
 	return result, nil
+
 }
 
 // Fetch an account
