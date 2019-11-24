@@ -2,6 +2,7 @@ package accounts
 
 import (
 	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/google/uuid"
@@ -473,12 +474,12 @@ func TestListOneAccount(t *testing.T) {
 	Convey("Given I created an account of an organisation", t, func() {
 
 		OrganisationID := uuid.New().String()
-		ID := uuid.New()
+		ID := uuid.New().String()
 
 		DataRequest := DataRequest{
 			Data: Data{
 				Attributes:     Account{Country: "GB"},
-				ID:             ID.String(),
+				ID:             ID,
 				Type:           Type,
 				OrganisationID: OrganisationID,
 			}}
@@ -504,6 +505,22 @@ func TestListOneAccount(t *testing.T) {
 
 }
 
+func TestListZeroAccounts(t *testing.T) {
+
+	Convey("When I list the accounts of an organisation", t, func() {
+
+		OrganisationID := uuid.New().String()
+
+		resp, _ := AccountsService.List(nil, &Filter{OrganisationID: &OrganisationID})
+
+		Convey("Then the response should contain no accounts", func() {
+			So(resp.Data, ShouldEqual, nil)
+		})
+
+	})
+
+}
+
 func TestListMultipleAccountsWithoutPaging(t *testing.T) {
 
 	Convey("Given I created two accounts on an organisation", t, func() {
@@ -511,12 +528,12 @@ func TestListMultipleAccountsWithoutPaging(t *testing.T) {
 		OrganisationID = uuid.New().String()
 
 		for i := 0; i < 2; i++ {
-			ID := uuid.New()
+			ID := uuid.New().String()
 
 			DataRequest := DataRequest{
 				Data: Data{
 					Attributes:     Account{Country: "GB"},
-					ID:             ID.String(),
+					ID:             ID,
 					Type:           Type,
 					OrganisationID: OrganisationID,
 				}}
@@ -530,6 +547,99 @@ func TestListMultipleAccountsWithoutPaging(t *testing.T) {
 
 			Convey("Then the response should contain the two accounts", func() {
 				So(len(*resp.Data), ShouldEqual, 2)
+			})
+
+		})
+
+	})
+
+}
+
+func TestListMultipleAccountsWithPaging(t *testing.T) {
+
+	Convey("Given I created 10 accounts on an organisation", t, func() {
+
+		OrganisationID = uuid.New().String()
+
+		for i := 0; i < 10; i++ {
+			ID := uuid.New().String()
+			BankID := strconv.Itoa(i)
+
+			DataRequest := DataRequest{
+				Data: Data{
+					Attributes: Account{
+						Country: "GB",
+						BankID:  &BankID,
+					},
+					ID:             ID,
+					Type:           Type,
+					OrganisationID: OrganisationID,
+				}}
+
+			AccountsService.Create(DataRequest)
+		}
+
+		Convey("When I list the accounts of the organisation with page size 10", func() {
+
+			resp, _ := AccountsService.List(&Page{Number: 0, Size: 10}, &Filter{OrganisationID: &OrganisationID})
+
+			Convey("Then the response should contain all accounts", func() {
+				dataArr := *resp.Data
+				So(len(dataArr), ShouldEqual, 10)
+				So(*dataArr[0].Attributes.BankID, ShouldEqual, "0")
+				So(*dataArr[9].Attributes.BankID, ShouldEqual, "9")
+			})
+
+		})
+
+		Convey("When I list the accounts of the organisation with page size 5", func() {
+
+			resp, _ := AccountsService.List(&Page{Number: 0, Size: 5}, &Filter{OrganisationID: &OrganisationID})
+
+			Convey("Then the response should contain first 5 accounts", func() {
+				dataArr := *resp.Data
+				So(len(dataArr), ShouldEqual, 5)
+				So(*dataArr[0].Attributes.BankID, ShouldEqual, "0")
+				So(*dataArr[4].Attributes.BankID, ShouldEqual, "4")
+			})
+
+		})
+
+		Convey("When I list the accounts of the organisation with page size 15", func() {
+
+			resp, _ := AccountsService.List(&Page{Number: 0, Size: 15}, &Filter{OrganisationID: &OrganisationID})
+
+			Convey("Then the response should contain all accounts", func() {
+				dataArr := *resp.Data
+				So(len(dataArr), ShouldEqual, 10)
+				So(*dataArr[0].Attributes.BankID, ShouldEqual, "0")
+				So(*dataArr[9].Attributes.BankID, ShouldEqual, "9")
+			})
+
+		})
+
+		Convey("When I list the accounts of the organisation with page number 1 and page size 5", func() {
+
+			resp, _ := AccountsService.List(&Page{Number: 1, Size: 5}, &Filter{OrganisationID: &OrganisationID})
+
+			Convey("Then the response should contain last 5 accounts", func() {
+				dataArr := *resp.Data
+				So(len(dataArr), ShouldEqual, 5)
+				So(*dataArr[0].Attributes.BankID, ShouldEqual, "5")
+				So(*dataArr[4].Attributes.BankID, ShouldEqual, "9")
+			})
+
+		})
+
+		Convey("When I list the accounts of the organisation with page number 1 and page size 3", func() {
+
+			resp, _ := AccountsService.List(&Page{Number: 1, Size: 3}, &Filter{OrganisationID: &OrganisationID})
+
+			Convey("Then the response should contain the last 4-6th accounts", func() {
+				dataArr := *resp.Data
+				So(len(dataArr), ShouldEqual, 3)
+				So(*dataArr[0].Attributes.BankID, ShouldEqual, "3")
+				So(*dataArr[2].Attributes.BankID, ShouldEqual, "5")
 			})
 
 		})
