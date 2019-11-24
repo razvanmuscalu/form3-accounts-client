@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -17,7 +18,7 @@ type Client interface {
 	Create(request DataRequest) (Single, error)
 	Fetch(id string) (Single, error)
 	List() (List, error)
-	Delete(id string) (bool, error)
+	Delete(id string, version int) (bool, error)
 }
 
 // Service implements Client
@@ -87,13 +88,13 @@ func (s Service) List() (List, error) {
 }
 
 // Delete an account
-func (s Service) Delete(id string) (bool, error) {
+func (s Service) Delete(id string, version int) (bool, error) {
 
 	if _, err := uuid.Parse(id); err != nil {
 		return false, fmt.Errorf("Invalid ID [%s]", id)
 	}
 
-	req, _ := http.NewRequest("DELETE", fmt.Sprintf("%s/v1/organisation/accounts/%s?version=0", s.URL, id), new(bytes.Buffer))
+	req, _ := http.NewRequest("DELETE", fmt.Sprintf("%s/v1/organisation/accounts/%s?version=%s", s.URL, id, strconv.Itoa(version)), new(bytes.Buffer))
 	resp, _ := httpClient.Do(req)
 
 	if resp.StatusCode != 204 {
