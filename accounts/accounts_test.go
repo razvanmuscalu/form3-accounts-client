@@ -295,12 +295,12 @@ func TestCreateAccountWithInvalidAlternativeBankAccountNames(t *testing.T) {
 func TestFetchBareMinimumAccount(t *testing.T) {
 
 	Convey("Given I created an account with only required fields", t, func() {
-		ID := uuid.New().String()
+		ID := uuid.New()
 
 		DataRequest := DataRequest{
 			Data: Data{
 				Attributes:     Account{Country: "GB"},
-				ID:             ID,
+				ID:             ID.String(),
 				Type:           Type,
 				OrganisationID: OrganisationID,
 			}}
@@ -324,7 +324,7 @@ func TestFetchBareMinimumAccount(t *testing.T) {
 func TestFetchFullAccount(t *testing.T) {
 
 	Convey("Given I created an account with all fields", t, func() {
-		ID := uuid.New().String()
+		ID := uuid.New()
 
 		BaseCurrency := "GBP"
 		BankID := "400302"
@@ -363,7 +363,7 @@ func TestFetchFullAccount(t *testing.T) {
 		DataRequest := DataRequest{
 			Data: Data{
 				Attributes:     Account,
-				ID:             ID,
+				ID:             ID.String(),
 				Type:           Type,
 				OrganisationID: OrganisationID,
 			}}
@@ -387,7 +387,7 @@ func TestFetchFullAccount(t *testing.T) {
 func TestFetchNonExistentAccount(t *testing.T) {
 
 	Convey("When I fetch an account by a random ID", t, func() {
-		ID := uuid.New().String()
+		ID := uuid.New()
 		_, err := AccountsService.Fetch(ID)
 
 		Convey("The an appropriate error is propagated to the caller", func() {
@@ -397,29 +397,15 @@ func TestFetchNonExistentAccount(t *testing.T) {
 
 }
 
-func TestFetchByIDWhichIsNotValidUUID(t *testing.T) {
-
-	Convey("When I fetch an account by an ID which is a not a valid UUID", t, func() {
-		ID := "1"
-		_, err := AccountsService.Fetch(ID)
-
-		Convey("The an appropriate error is propagated to the caller", func() {
-			So(err.Error(), ShouldEqual, fmt.Sprintf("Invalid ID [%s]", ID))
-		})
-
-	})
-
-}
-
 func TestDeleteAccount(t *testing.T) {
 
 	Convey("Given I created an account", t, func() {
-		ID := uuid.New().String()
+		ID := uuid.New()
 
 		DataRequest := DataRequest{
 			Data: Data{
 				Attributes:     Account{Country: "GB"},
-				ID:             ID,
+				ID:             ID.String(),
 				Type:           Type,
 				OrganisationID: OrganisationID,
 			}}
@@ -440,24 +426,10 @@ func TestDeleteAccount(t *testing.T) {
 
 }
 
-func TestDeleteByIDWhichIsNotValidUUID(t *testing.T) {
-
-	Convey("When I delete an account by an ID which is a not a valid UUID", t, func() {
-		ID := "1"
-		_, err := AccountsService.Delete(ID, 0)
-
-		Convey("The an appropriate error is propagated to the caller", func() {
-			So(err.Error(), ShouldEqual, fmt.Sprintf("Invalid ID [%s]", ID))
-		})
-
-	})
-
-}
-
 func TestDeleteNonExistentAccount(t *testing.T) {
 
 	Convey("When I delete an account by a random ID", t, func() {
-		ID := uuid.New().String()
+		ID := uuid.New()
 		resp, _ := AccountsService.Delete(ID, 0)
 
 		Convey("The the response is true", func() {
@@ -470,12 +442,12 @@ func TestDeleteNonExistentAccount(t *testing.T) {
 func TestDeleteNonExistentAccountVersion(t *testing.T) {
 
 	Convey("Given I created an account", t, func() {
-		ID := uuid.New().String()
+		ID := uuid.New()
 
 		DataRequest := DataRequest{
 			Data: Data{
 				Attributes:     Account{Country: "GB"},
-				ID:             ID,
+				ID:             ID.String(),
 				Type:           Type,
 				OrganisationID: OrganisationID,
 			}}

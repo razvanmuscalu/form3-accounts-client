@@ -16,9 +16,9 @@ import (
 // Client is the client interface to access the Accounts API
 type Client interface {
 	Create(request DataRequest) (Single, error)
-	Fetch(id string) (Single, error)
+	Fetch(id uuid.UUID) (Single, error)
 	List() (List, error)
-	Delete(id string, version int) (bool, error)
+	Delete(id uuid.UUID, version int) (bool, error)
 }
 
 // Service implements Client
@@ -60,11 +60,7 @@ func (s Service) Create(request DataRequest) (Single, error) {
 }
 
 // Fetch an account
-func (s Service) Fetch(id string) (Single, error) {
-
-	if _, err := uuid.Parse(id); err != nil {
-		return Single{}, fmt.Errorf("Invalid ID [%s]", id)
-	}
+func (s Service) Fetch(id uuid.UUID) (Single, error) {
 
 	resp, _ := httpClient.Get(fmt.Sprintf("%s/v1/organisation/accounts/%s", s.URL, id))
 
@@ -88,11 +84,7 @@ func (s Service) List() (List, error) {
 }
 
 // Delete an account
-func (s Service) Delete(id string, version int) (bool, error) {
-
-	if _, err := uuid.Parse(id); err != nil {
-		return false, fmt.Errorf("Invalid ID [%s]", id)
-	}
+func (s Service) Delete(id uuid.UUID, version int) (bool, error) {
 
 	req, _ := http.NewRequest("DELETE", fmt.Sprintf("%s/v1/organisation/accounts/%s?version=%s", s.URL, id, strconv.Itoa(version)), new(bytes.Buffer))
 	resp, _ := httpClient.Do(req)
