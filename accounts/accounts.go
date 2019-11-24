@@ -88,6 +88,21 @@ func (s Service) List() (List, error) {
 
 // Delete an account
 func (s Service) Delete(id string) (bool, error) {
+
+	if _, err := uuid.Parse(id); err != nil {
+		return false, fmt.Errorf("Invalid ID [%s]", id)
+	}
+
+	req, _ := http.NewRequest("DELETE", fmt.Sprintf("%s/v1/organisation/accounts/%s?version=0", s.URL, id), new(bytes.Buffer))
+	resp, _ := httpClient.Do(req)
+
+	if resp.StatusCode != 204 {
+		var result ErrorResponse
+		json.NewDecoder(resp.Body).Decode(&result)
+
+		return false, errors.New(result.ErrorMessage)
+	}
+
 	return true, nil
 }
 

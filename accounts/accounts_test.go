@@ -382,3 +382,59 @@ func TestFetchByIDWhichIsNotValidUUID(t *testing.T) {
 	})
 
 }
+
+func TestDeleteAccount(t *testing.T) {
+
+	Convey("Given I created an account", t, func() {
+		ID := uuid.New().String()
+
+		DataRequest := DataRequest{
+			Data: Data{
+				Attributes:     Account{Country: "GB"},
+				ID:             ID,
+				Type:           Type,
+				OrganisationID: OrganisationID,
+			}}
+
+		AccountsService.Create(DataRequest)
+
+		Convey("When I Delete the account by ID", func() {
+
+			resp, _ := AccountsService.Delete(ID)
+
+			Convey("Then the response is true", func() {
+				So(resp, ShouldEqual, true)
+			})
+
+		})
+
+	})
+
+}
+
+func TestDeleteByIDWhichIsNotValidUUID(t *testing.T) {
+
+	Convey("When I Delete an account by an ID which is a not a valid UUID", t, func() {
+		ID := "1"
+		_, err := AccountsService.Delete(ID)
+
+		Convey("The an appropriate error is propagated to the caller", func() {
+			So(err.Error(), ShouldEqual, fmt.Sprintf("Invalid ID [%s]", ID))
+		})
+
+	})
+
+}
+
+func TestDeleteNonExistentAccount(t *testing.T) {
+
+	Convey("When I Delete an account by a random ID", t, func() {
+		ID := uuid.New().String()
+		resp, _ := AccountsService.Delete(ID)
+
+		Convey("The the response is true", func() {
+			So(resp, ShouldEqual, true)
+		})
+	})
+
+}
