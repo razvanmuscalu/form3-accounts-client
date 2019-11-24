@@ -467,3 +467,73 @@ func TestDeleteNonExistentAccountVersion(t *testing.T) {
 	})
 
 }
+
+func TestListOneAccount(t *testing.T) {
+
+	Convey("Given I created an account of an organisation", t, func() {
+
+		OrganisationID := uuid.New().String()
+		ID := uuid.New()
+
+		DataRequest := DataRequest{
+			Data: Data{
+				Attributes:     Account{Country: "GB"},
+				ID:             ID.String(),
+				Type:           Type,
+				OrganisationID: OrganisationID,
+			}}
+
+		AccountsService.Create(DataRequest)
+
+		Convey("When I list the accounts of the organisation", func() {
+
+			resp, _ := AccountsService.List(nil, &Filter{OrganisationID: &OrganisationID})
+
+			Convey("Then the response should contain the account", func() {
+				So(len(*resp.Data), ShouldEqual, 1)
+			})
+
+			Convey("And the account should match", func() {
+				dataArr := *resp.Data
+				So(dataArr[0].Attributes, ShouldResemble, Account{Country: "GB"})
+			})
+
+		})
+
+	})
+
+}
+
+func TestListMultipleAccountsWithoutPaging(t *testing.T) {
+
+	Convey("Given I created two accounts on an organisation", t, func() {
+
+		OrganisationID = uuid.New().String()
+
+		for i := 0; i < 2; i++ {
+			ID := uuid.New()
+
+			DataRequest := DataRequest{
+				Data: Data{
+					Attributes:     Account{Country: "GB"},
+					ID:             ID.String(),
+					Type:           Type,
+					OrganisationID: OrganisationID,
+				}}
+
+			AccountsService.Create(DataRequest)
+		}
+
+		Convey("When I list the accounts of the organisation without using pagination", func() {
+
+			resp, _ := AccountsService.List(nil, &Filter{OrganisationID: &OrganisationID})
+
+			Convey("Then the response should contain the two accounts", func() {
+				So(len(*resp.Data), ShouldEqual, 2)
+			})
+
+		})
+
+	})
+
+}

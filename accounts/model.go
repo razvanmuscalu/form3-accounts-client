@@ -13,8 +13,19 @@ type Single struct {
 
 // List is the response payload when requesting a list of accounts
 type List struct {
-	Data  []Data `json:"data"`
-	Links Links  `json:"links"`
+	Data  *[]Data `json:"data,omitempty"`
+	Links Links   `json:"links"`
+}
+
+// Page holds the requested page number and size on the List function
+type Page struct {
+	Number int
+	Size   int
+}
+
+// Filter holds the requested filter on the List function
+type Filter struct {
+	OrganisationID *string
 }
 
 // Data is a wrapper object around the Attributes object
@@ -32,6 +43,8 @@ type Data struct {
 type Links struct {
 	First *string `json:"first,omitempty"`
 	Last  *string `json:"last,omitempty"`
+	Next  *string `json:"next,omitempty"`
+	Prev  *string `json:"prev,omitempty"`
 	Self  string  `json:"self"`
 }
 

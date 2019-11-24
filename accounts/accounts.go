@@ -17,7 +17,7 @@ import (
 type Client interface {
 	Create(request DataRequest) (Single, error)
 	Fetch(id uuid.UUID) (Single, error)
-	List() (List, error)
+	List(page *Page, filter *Filter) (List, error)
 	Delete(id uuid.UUID, version int) (bool, error)
 }
 
@@ -79,8 +79,21 @@ func (s Service) Fetch(id uuid.UUID) (Single, error) {
 }
 
 // List accounts
-func (s Service) List() (List, error) {
-	return List{}, nil
+func (s Service) List(page *Page, filter *Filter) (List, error) {
+
+	resp, _ := httpClient.Get(buildListURL(s.URL, page, filter))
+
+	if resp.StatusCode != 200 {
+		var result ErrorResponse
+		json.NewDecoder(resp.Body).Decode(&result)
+
+		return List{}, errors.New(result.ErrorMessage)
+	}
+
+	var result List
+	json.NewDecoder(resp.Body).Decode(&result)
+
+	return result, nil
 }
 
 // Delete an account
@@ -130,4 +143,29 @@ func validate(account Account) error {
 	}
 
 	return nil
+}
+
+func buildListURL(baseURL string, page *Page, filter *Filter) string {
+
+	var params []string
+	if page != nil {
+		params = append(params, fmt.Sprintf("page[number]=%s", strconv.Itoa(page.Number)))
+		params = append(params, fmt.Sprintf("page[size]=%s", strconv.Itoa(page.Size)))
+	}
+	if filter != nil {
+		if filter.OrganisationID != nil {
+			params = append(params, fmt.Sprintf("filter[organisation_id]=%s", *filter.OrganisationID))
+		}
+	}
+
+	var URL bytes.Buffer
+	URL.WriteString(fmt.Sprintf("%s/v1/organisation/accounts", baseURL))
+	for i, param := range params {
+		if i == 0 {
+			URL.WriteString(fmt.Sprintf("?%s", param))
+		}
+		URL.WriteString(fmt.Sprintf("&%s", param))
+	}
+
+	return URL.String()
 }
