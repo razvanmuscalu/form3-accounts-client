@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"regexp"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // Client is the client interface to access the Accounts API
@@ -40,11 +42,7 @@ func (s Service) Create(request DataRequest) (Single, error) {
 
 	req := new(bytes.Buffer)
 	json.NewEncoder(req).Encode(request)
-	resp, err := httpClient.Post(s.URL+"/v1/organisation/accounts", "application/json", req)
-
-	if err != nil {
-		println("ERROR: ")
-	}
+	resp, _ := httpClient.Post(fmt.Sprintf("%s/v1/organisation/accounts", s.URL), "application/json", req)
 
 	if resp.StatusCode != 201 {
 		var result ErrorResponse
@@ -62,11 +60,25 @@ func (s Service) Create(request DataRequest) (Single, error) {
 
 // Fetch an account
 func (s Service) Fetch(id string) (Single, error) {
-	accountNumber := "123"
-	firstName := "razvan"
-	account := Account{AccountNumber: &accountNumber, FirstName: &firstName}
-	data := Data{Attributes: account}
-	return Single{Data: data}, nil
+
+	if _, err := uuid.Parse(id); err != nil {
+		return Single{}, fmt.Errorf("Invalid ID [%s]", id)
+	}
+
+	resp, _ := httpClient.Get(fmt.Sprintf("%s/v1/organisation/accounts/%s", s.URL, id))
+
+	if resp.StatusCode != 200 {
+		var result ErrorResponse
+		json.NewDecoder(resp.Body).Decode(&result)
+
+		return Single{}, errors.New(result.ErrorMessage)
+	}
+
+	var result Single
+	json.NewDecoder(resp.Body).Decode(&result)
+
+	return result, nil
+
 }
 
 // List accounts
