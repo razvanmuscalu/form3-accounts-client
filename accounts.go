@@ -43,7 +43,10 @@ func (s Service) Create(request DataRequest) (Single, error) {
 
 	req := new(bytes.Buffer)
 	json.NewEncoder(req).Encode(request)
-	resp, _ := httpClient.Post(fmt.Sprintf("%s%s", s.URL, path), "application/json", req)
+	resp, err := httpClient.Post(fmt.Sprintf("%s%s", s.URL, path), "application/json", req)
+	if err != nil {
+		return Single{}, fmt.Errorf("An error has occured while creating account")
+	}
 
 	if err := decodeErrorResponse(resp); err != nil {
 		return Single{}, err
@@ -59,7 +62,10 @@ func (s Service) Create(request DataRequest) (Single, error) {
 // Fetch an account
 func (s Service) Fetch(id uuid.UUID) (Single, error) {
 
-	resp, _ := httpClient.Get(fmt.Sprintf("%s%s/%s", s.URL, path, id))
+	resp, err := httpClient.Get(fmt.Sprintf("%s%s/%s", s.URL, path, id))
+	if err != nil {
+		return Single{}, fmt.Errorf("An error has occured while fetching account")
+	}
 
 	if err := decodeErrorResponse(resp); err != nil {
 		return Single{}, err
@@ -75,7 +81,10 @@ func (s Service) Fetch(id uuid.UUID) (Single, error) {
 // List accounts
 func (s Service) List(page *Page, filter *Filter) (List, error) {
 
-	resp, _ := httpClient.Get(buildListURL(s.URL, page, filter))
+	resp, err := httpClient.Get(buildListURL(s.URL, page, filter))
+	if err != nil {
+		return List{}, fmt.Errorf("An error has occured while listing accounts")
+	}
 
 	if err := decodeErrorResponse(resp); err != nil {
 		return List{}, err
@@ -90,8 +99,15 @@ func (s Service) List(page *Page, filter *Filter) (List, error) {
 // Delete an account
 func (s Service) Delete(id uuid.UUID, version int) (bool, error) {
 
-	req, _ := http.NewRequest("DELETE", fmt.Sprintf("%s%s/%s?version=%s", s.URL, path, id, strconv.Itoa(version)), new(bytes.Buffer))
-	resp, _ := httpClient.Do(req)
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s%s/%s?version=%s", s.URL, path, id, strconv.Itoa(version)), new(bytes.Buffer))
+	if err != nil {
+		return false, fmt.Errorf("An error has occured while constructing delete request")
+	}
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return false, fmt.Errorf("An error has occured while deleting account")
+	}
 
 	if err := decodeErrorResponse(resp); err != nil {
 		return false, err

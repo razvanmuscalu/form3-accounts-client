@@ -63,6 +63,21 @@ func TestCreateFullAccount(t *testing.T) {
 
 }
 
+func TestCreateFailure(t *testing.T) {
+
+	Convey("When I create an account on a non-existent server", t, func() {
+		DataRequest := NewDataRequest(uuid.New().String(), OrganisationID)
+		AccountsService := Service{URL: "http://unknown:9999"}
+		_, err := AccountsService.Create(DataRequest)
+
+		Convey("Then an appropriate error is propagated to the caller", func() {
+			So(err.Error(), ShouldEqual, "An error has occured while creating account")
+		})
+
+	})
+
+}
+
 func TestCreateDuplicateAccount(t *testing.T) {
 
 	Convey("Given I created an account", t, func() {
@@ -269,6 +284,22 @@ func TestFetchBareMinimumAccount(t *testing.T) {
 
 }
 
+func TestFetchFailure(t *testing.T) {
+
+	Convey("When I fetch an account by ID on a non-existent server", t, func() {
+
+		AccountsService := Service{URL: "http://unknown:9999"}
+
+		_, err := AccountsService.Fetch(uuid.New())
+
+		Convey("Then an appropriate error is propagated to the caller", func() {
+			So(err.Error(), ShouldEqual, "An error has occured while fetching account")
+		})
+
+	})
+
+}
+
 func TestFetchFullAccount(t *testing.T) {
 
 	Convey("Given I created an account with all fields", t, func() {
@@ -320,6 +351,22 @@ func TestDeleteAccount(t *testing.T) {
 				So(resp, ShouldEqual, true)
 			})
 
+		})
+
+	})
+
+}
+
+func TestDeleteFailure(t *testing.T) {
+
+	Convey("When I delete an account by ID on a non-existent server", t, func() {
+
+		AccountsService := Service{URL: "http://unknown:9999"}
+
+		_, err := AccountsService.Delete(uuid.New(), 0)
+
+		Convey("The an appropriate error is propagated to the caller", func() {
+			So(err.Error(), ShouldEqual, "An error has occured while deleting account")
 		})
 
 	})
@@ -384,6 +431,20 @@ func TestListOneAccount(t *testing.T) {
 				So(dataArr[0].Attributes, ShouldResemble, Account{Country: "GB"})
 			})
 
+		})
+
+	})
+
+}
+
+func TestListFailure(t *testing.T) {
+
+	Convey("When I list the accounts of the organisation", t, func() {
+		AccountsService := Service{URL: "http://unknown:9999"}
+		_, err := AccountsService.List(nil, nil)
+
+		Convey("The an appropriate error is propagated to the caller", func() {
+			So(err.Error(), ShouldEqual, "An error has occured while listing accounts")
 		})
 
 	})
