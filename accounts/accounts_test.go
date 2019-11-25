@@ -20,19 +20,11 @@ func TestCreateBareMinimumAccount(t *testing.T) {
 
 	Convey("When I create an account with only required fields", t, func() {
 		ID := uuid.New().String()
-
-		DataRequest := DataRequest{
-			Data: Data{
-				Attributes:     Account{Country: "GB"},
-				ID:             ID,
-				Type:           Type,
-				OrganisationID: OrganisationID,
-			}}
-
+		DataRequest := NewDataRequest(ID, OrganisationID)
 		resp, _ := AccountsService.Create(DataRequest)
 
 		Convey("Then the required account fields should equal", func() {
-			So(resp.Data.Attributes, ShouldResemble, Account{Country: "GB"})
+			So(resp.Data.Attributes, ShouldResemble, DataRequest.Data.Attributes)
 		})
 
 		Convey("And the required data fields should equal", func() {
@@ -50,52 +42,12 @@ func TestCreateFullAccount(t *testing.T) {
 	Convey("When I create an account with all fields", t, func() {
 		ID := uuid.New().String()
 
-		BaseCurrency := "GBP"
-		BankID := "400302"
-		BankIDCode := "GBDSC"
-		AccountNumber := "10000004"
-		BIC := "NWBKGB42"
-		IBAN := "GB28NWBK40030212764204"
-		CustomerID := "234"
-		Title := "Sie"
-		FirstName := "Mary-Jane Doe"
-		BankAccountName := "Smith"
-		AlternativeBankAccountNames := []string{"Peters"}
-		AccountClassification := "Personal"
-		JointAccount := false
-		AccountMatchingOptOut := false
-		SecondaryIdentification := "44516"
-
-		Account := Account{
-			Country:                     "GB",
-			BaseCurrency:                &BaseCurrency,
-			BankID:                      &BankID,
-			BankIDCode:                  &BankIDCode,
-			AccountNumber:               &AccountNumber,
-			BIC:                         &BIC,
-			IBAN:                        &IBAN,
-			CustomerID:                  &CustomerID,
-			Title:                       &Title,
-			FirstName:                   &FirstName,
-			BankAccountName:             &BankAccountName,
-			AlternativeBankAccountNames: &AlternativeBankAccountNames,
-			AccountClassification:       &AccountClassification,
-			JointAccount:                &JointAccount,
-			AccountMatchingOptOut:       &AccountMatchingOptOut,
-			SecondaryIdentification:     &SecondaryIdentification,
-		}
-		DataRequest := DataRequest{
-			Data: Data{
-				Attributes:     Account,
-				ID:             ID,
-				Type:           Type,
-				OrganisationID: OrganisationID,
-			}}
+		DataRequest := NewFullDataRequest(ID)
 
 		resp, _ := AccountsService.Create(DataRequest)
 
 		Convey("Then all the account fields should equal", func() {
-			So(resp.Data.Attributes, ShouldResemble, Account)
+			So(resp.Data.Attributes, ShouldResemble, DataRequest.Data.Attributes)
 		})
 
 	})
@@ -107,13 +59,7 @@ func TestCreateDuplicateAccount(t *testing.T) {
 	Convey("Given I created an account", t, func() {
 		ID := uuid.New().String()
 
-		DataRequest := DataRequest{
-			Data: Data{
-				Attributes:     Account{Country: "GB"},
-				ID:             ID,
-				Type:           Type,
-				OrganisationID: OrganisationID,
-			}}
+		DataRequest := NewDataRequest(ID, OrganisationID)
 
 		AccountsService.Create(DataRequest)
 
@@ -298,15 +244,7 @@ func TestFetchBareMinimumAccount(t *testing.T) {
 	Convey("Given I created an account with only required fields", t, func() {
 		ID := uuid.New()
 
-		DataRequest := DataRequest{
-			Data: Data{
-				Attributes:     Account{Country: "GB"},
-				ID:             ID.String(),
-				Type:           Type,
-				OrganisationID: OrganisationID,
-			}}
-
-		AccountsService.Create(DataRequest)
+		AccountsService.Create(NewDataRequest(ID.String(), OrganisationID))
 
 		Convey("When I fetch the account by ID", func() {
 
@@ -327,47 +265,7 @@ func TestFetchFullAccount(t *testing.T) {
 	Convey("Given I created an account with all fields", t, func() {
 		ID := uuid.New()
 
-		BaseCurrency := "GBP"
-		BankID := "400302"
-		BankIDCode := "GBDSC"
-		AccountNumber := "10000004"
-		BIC := "NWBKGB42"
-		IBAN := "GB28NWBK40030212764204"
-		CustomerID := "234"
-		Title := "Sie"
-		FirstName := "Mary-Jane Doe"
-		BankAccountName := "Smith"
-		AlternativeBankAccountNames := []string{"Peters"}
-		AccountClassification := "Personal"
-		JointAccount := false
-		AccountMatchingOptOut := false
-		SecondaryIdentification := "44516"
-
-		Account := Account{
-			Country:                     "GB",
-			BaseCurrency:                &BaseCurrency,
-			BankID:                      &BankID,
-			BankIDCode:                  &BankIDCode,
-			AccountNumber:               &AccountNumber,
-			BIC:                         &BIC,
-			IBAN:                        &IBAN,
-			CustomerID:                  &CustomerID,
-			Title:                       &Title,
-			FirstName:                   &FirstName,
-			BankAccountName:             &BankAccountName,
-			AlternativeBankAccountNames: &AlternativeBankAccountNames,
-			AccountClassification:       &AccountClassification,
-			JointAccount:                &JointAccount,
-			AccountMatchingOptOut:       &AccountMatchingOptOut,
-			SecondaryIdentification:     &SecondaryIdentification,
-		}
-		DataRequest := DataRequest{
-			Data: Data{
-				Attributes:     Account,
-				ID:             ID.String(),
-				Type:           Type,
-				OrganisationID: OrganisationID,
-			}}
+		DataRequest := NewFullDataRequest(ID.String())
 
 		AccountsService.Create(DataRequest)
 
@@ -376,7 +274,7 @@ func TestFetchFullAccount(t *testing.T) {
 			resp, _ := AccountsService.Fetch(ID)
 
 			Convey("Then the required account fields should equal", func() {
-				So(resp.Data.Attributes, ShouldResemble, Account)
+				So(resp.Data.Attributes, ShouldResemble, DataRequest.Data.Attributes)
 			})
 
 		})
@@ -403,15 +301,7 @@ func TestDeleteAccount(t *testing.T) {
 	Convey("Given I created an account", t, func() {
 		ID := uuid.New()
 
-		DataRequest := DataRequest{
-			Data: Data{
-				Attributes:     Account{Country: "GB"},
-				ID:             ID.String(),
-				Type:           Type,
-				OrganisationID: OrganisationID,
-			}}
-
-		AccountsService.Create(DataRequest)
+		AccountsService.Create(NewDataRequest(ID.String(), OrganisationID))
 
 		Convey("When I delete the account by ID", func() {
 
@@ -445,15 +335,7 @@ func TestDeleteNonExistentAccountVersion(t *testing.T) {
 	Convey("Given I created an account", t, func() {
 		ID := uuid.New()
 
-		DataRequest := DataRequest{
-			Data: Data{
-				Attributes:     Account{Country: "GB"},
-				ID:             ID.String(),
-				Type:           Type,
-				OrganisationID: OrganisationID,
-			}}
-
-		AccountsService.Create(DataRequest)
+		AccountsService.Create(NewDataRequest(ID.String(), OrganisationID))
 
 		Convey("When I delete the account by ID and non-existent version", func() {
 
@@ -476,13 +358,7 @@ func TestListOneAccount(t *testing.T) {
 		OrganisationID := uuid.New().String()
 		ID := uuid.New().String()
 
-		DataRequest := DataRequest{
-			Data: Data{
-				Attributes:     Account{Country: "GB"},
-				ID:             ID,
-				Type:           Type,
-				OrganisationID: OrganisationID,
-			}}
+		DataRequest := NewDataRequest(ID, OrganisationID)
 
 		AccountsService.Create(DataRequest)
 
@@ -529,14 +405,7 @@ func TestListMultipleAccountsWithoutPaging(t *testing.T) {
 
 		for i := 0; i < 2; i++ {
 			ID := uuid.New().String()
-
-			DataRequest := DataRequest{
-				Data: Data{
-					Attributes:     Account{Country: "GB"},
-					ID:             ID,
-					Type:           Type,
-					OrganisationID: OrganisationID,
-				}}
+			DataRequest := NewDataRequest(ID, OrganisationID)
 
 			AccountsService.Create(DataRequest)
 		}
@@ -645,5 +514,64 @@ func TestListMultipleAccountsWithPaging(t *testing.T) {
 		})
 
 	})
+
+}
+
+func NewDataRequest(ID string, OrganisationID string) DataRequest {
+
+	return DataRequest{
+		Data: Data{
+			Attributes:     Account{Country: "GB"},
+			ID:             ID,
+			Type:           Type,
+			OrganisationID: OrganisationID,
+		}}
+
+}
+
+func NewFullDataRequest(ID string) DataRequest {
+
+	BaseCurrency := "GBP"
+	BankID := "400302"
+	BankIDCode := "GBDSC"
+	AccountNumber := "10000004"
+	BIC := "NWBKGB42"
+	IBAN := "GB28NWBK40030212764204"
+	CustomerID := "234"
+	Title := "Sie"
+	FirstName := "Mary-Jane Doe"
+	BankAccountName := "Smith"
+	AlternativeBankAccountNames := []string{"Peters"}
+	AccountClassification := "Personal"
+	JointAccount := false
+	AccountMatchingOptOut := false
+	SecondaryIdentification := "44516"
+
+	Account := Account{
+		Country:                     "GB",
+		BaseCurrency:                &BaseCurrency,
+		BankID:                      &BankID,
+		BankIDCode:                  &BankIDCode,
+		AccountNumber:               &AccountNumber,
+		BIC:                         &BIC,
+		IBAN:                        &IBAN,
+		CustomerID:                  &CustomerID,
+		Title:                       &Title,
+		FirstName:                   &FirstName,
+		BankAccountName:             &BankAccountName,
+		AlternativeBankAccountNames: &AlternativeBankAccountNames,
+		AccountClassification:       &AccountClassification,
+		JointAccount:                &JointAccount,
+		AccountMatchingOptOut:       &AccountMatchingOptOut,
+		SecondaryIdentification:     &SecondaryIdentification,
+	}
+
+	return DataRequest{
+		Data: Data{
+			Attributes:     Account,
+			ID:             ID,
+			Type:           Type,
+			OrganisationID: OrganisationID,
+		}}
 
 }
