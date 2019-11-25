@@ -1,6 +1,6 @@
 version: '3'
 services:
-  accountapi-client:
+  accountapi-client-goconvey:
     restart: on-failure
     depends_on:
       - accountapi
@@ -8,7 +8,22 @@ services:
       - ACCOUNTS_API_URL=http://accountapi:8080
     build:
       context: .
-      dockerfile: Dockerfile 
+      dockerfile: Dockerfile
+      args:
+        goconvey_port: 8081
+    volumes:
+      - ${GOPATH}/src:/go/src    
+    ports:
+      - 8081:8081
+  accountapi-client-test:
+    restart: on-failure
+    depends_on:
+      - accountapi
+    environment:
+      - ACCOUNTS_API_URL=http://accountapi:8080
+    build:
+      context: .
+      dockerfile: Dockerfile
     command: go test -v
   accountapi:
     image: form3tech/interview-accountapi:v1.0.0-4-g63cf8434
