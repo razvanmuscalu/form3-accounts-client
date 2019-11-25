@@ -1,4 +1,4 @@
-package accounts
+package main
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	AccountsService = Service{URL: "http://localhost:8080"}
+	AccountsService = Service{URL: "http://accountapi:8080"}
 	OrganisationID  = uuid.New().String()
 	Type            = "accounts"
 )

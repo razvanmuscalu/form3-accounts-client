@@ -1,5 +1,17 @@
 version: '3'
 services:
+  accountapi-client:
+    # image: golang:1.13.4-alpine
+    restart: on-failure
+    depends_on:
+      - accountapi
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # volumes:
+    #   - .:/go/src/accountapi-client
+    # working_dir: /go/src/accountapi-client  
+    command: go test -v
   accountapi:
     image: form3tech/interview-accountapi:v1.0.0-4-g63cf8434
     restart: on-failure
