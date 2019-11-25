@@ -8,7 +8,7 @@ services:
       - ACCOUNTS_API_URL=http://accountapi:8080
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile-goconvey
       args:
         goconvey_port: 8081
     volumes:
@@ -23,8 +23,8 @@ services:
       - ACCOUNTS_API_URL=http://accountapi:8080
     build:
       context: .
-      dockerfile: Dockerfile
-    command: go test -v
+      dockerfile: Dockerfile-test
+    command: go test -v -vet=off
   accountapi:
     image: form3tech/interview-accountapi:v1.0.0-4-g63cf8434
     restart: on-failure
