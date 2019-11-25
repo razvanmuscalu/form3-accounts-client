@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"testing"
 
@@ -11,10 +12,18 @@ import (
 )
 
 var (
-	AccountsService = Service{URL: "http://accountapi:8080"}
+	AccountsService = Service{URL: GetURL()}
 	OrganisationID  = uuid.New().String()
 	Type            = "accounts"
 )
+
+func GetURL() string {
+	value := os.Getenv("ACCOUNTS_API_URL")
+	if len(value) == 0 {
+		return "http://localhost:8080"
+	}
+	return value
+}
 
 func TestCreateBareMinimumAccount(t *testing.T) {
 
