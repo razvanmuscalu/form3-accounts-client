@@ -26,30 +26,27 @@ type Service struct {
 	URL string
 }
 
-var (
-	httpClient http.Client = http.Client{
-		Timeout: time.Second * 2,
-	}
-)
+var httpClient http.Client = http.Client{
+	Timeout: time.Second * 2,
+}
+
+const path = "/v1/organisation/accounts"
 
 // Create an account
 //
 // The request is pre-validated to avoid unnecessary Bad Request
 func (s Service) Create(request DataRequest) (Single, error) {
 
-	if err := validate(request.Data.Attributes); err != nil {
+	if err := validateAccount(request.Data.Attributes); err != nil {
 		return Single{}, err
 	}
 
 	req := new(bytes.Buffer)
 	json.NewEncoder(req).Encode(request)
-	resp, _ := httpClient.Post(fmt.Sprintf("%s/v1/organisation/accounts", s.URL), "application/json", req)
+	resp, _ := httpClient.Post(fmt.Sprintf("%s%s", s.URL, path), "application/json", req)
 
-	if resp.StatusCode != 201 {
-		var result ErrorResponse
-		json.NewDecoder(resp.Body).Decode(&result)
-
-		return Single{}, errors.New(result.ErrorMessage)
+	if err := decodeErrorResponse(resp); err != nil {
+		return Single{}, err
 	}
 
 	var result Single
@@ -62,13 +59,10 @@ func (s Service) Create(request DataRequest) (Single, error) {
 // Fetch an account
 func (s Service) Fetch(id uuid.UUID) (Single, error) {
 
-	resp, _ := httpClient.Get(fmt.Sprintf("%s/v1/organisation/accounts/%s", s.URL, id))
+	resp, _ := httpClient.Get(fmt.Sprintf("%s%s/%s", s.URL, path, id))
 
-	if resp.StatusCode != 200 {
-		var result ErrorResponse
-		json.NewDecoder(resp.Body).Decode(&result)
-
-		return Single{}, errors.New(result.ErrorMessage)
+	if err := decodeErrorResponse(resp); err != nil {
+		return Single{}, err
 	}
 
 	var result Single
@@ -83,11 +77,8 @@ func (s Service) List(page *Page, filter *Filter) (List, error) {
 
 	resp, _ := httpClient.Get(buildListURL(s.URL, page, filter))
 
-	if resp.StatusCode != 200 {
-		var result ErrorResponse
-		json.NewDecoder(resp.Body).Decode(&result)
-
-		return List{}, errors.New(result.ErrorMessage)
+	if err := decodeErrorResponse(resp); err != nil {
+		return List{}, err
 	}
 
 	var result List
@@ -99,20 +90,28 @@ func (s Service) List(page *Page, filter *Filter) (List, error) {
 // Delete an account
 func (s Service) Delete(id uuid.UUID, version int) (bool, error) {
 
-	req, _ := http.NewRequest("DELETE", fmt.Sprintf("%s/v1/organisation/accounts/%s?version=%s", s.URL, id, strconv.Itoa(version)), new(bytes.Buffer))
+	req, _ := http.NewRequest("DELETE", fmt.Sprintf("%s%s/%s?version=%s", s.URL, path, id, strconv.Itoa(version)), new(bytes.Buffer))
 	resp, _ := httpClient.Do(req)
 
-	if resp.StatusCode != 204 {
-		var result ErrorResponse
-		json.NewDecoder(resp.Body).Decode(&result)
-
-		return false, errors.New(result.ErrorMessage)
+	if err := decodeErrorResponse(resp); err != nil {
+		return false, err
 	}
 
 	return true, nil
 }
 
-func validate(account Account) error {
+func decodeErrorResponse(resp *http.Response) error {
+	if !(resp.StatusCode == 200 || resp.StatusCode == 201 || resp.StatusCode == 204) {
+		var result ErrorResponse
+		json.NewDecoder(resp.Body).Decode(&result)
+
+		return errors.New(result.ErrorMessage)
+	}
+
+	return nil
+}
+
+func validateAccount(account Account) error {
 	var validBIC = regexp.MustCompile(`^([A-Z]{6}[A-Z0-9]{2}|[A-Z]{6}[A-Z0-9]{5})$`)
 	if account.BIC != nil && validBIC.MatchString(*account.BIC) == false {
 		return fmt.Errorf("Invalid BIC [%s]", *account.BIC)
@@ -159,7 +158,7 @@ func buildListURL(baseURL string, page *Page, filter *Filter) string {
 	}
 
 	var URL bytes.Buffer
-	URL.WriteString(fmt.Sprintf("%s/v1/organisation/accounts", baseURL))
+	URL.WriteString(fmt.Sprintf("%s%s", baseURL, path))
 	for i, param := range params {
 		if i == 0 {
 			URL.WriteString(fmt.Sprintf("?%s", param))
