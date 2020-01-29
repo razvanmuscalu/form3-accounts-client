@@ -1,20 +1,20 @@
 package accounts
 
-// DataRequest is the request payload used when creating an account
-type DataRequest struct {
-	Data Data `json:"data"`
+// AccountDataRequest is the request payload used when creating an account
+type AccountDataRequest struct {
+	AccountData AccountData `json:"data"`
 }
 
 // Single is the response payload when fetching an individual account
 type Single struct {
-	Data  Data  `json:"data"`
-	Links Links `json:"links"`
+	AccountData AccountData `json:"data"`
+	Links       Links       `json:"links"`
 }
 
 // List is the response payload when requesting a list of accounts
 type List struct {
-	Data  *[]Data `json:"data,omitempty"`
-	Links Links   `json:"links"`
+	AccountData *[]AccountData `json:"data,omitempty"`
+	Links       Links          `json:"links"`
 }
 
 // Page holds the requested page number and size on the List function
@@ -28,8 +28,8 @@ type Filter struct {
 	OrganisationID *string
 }
 
-// Data is a wrapper object around the Attributes object
-type Data struct {
+// AccountData is a wrapper object around the Attributes object
+type AccountData struct {
 	ID             string  `json:"id"`
 	OrganisationID string  `json:"organisation_id"`
 	Type           string  `json:"type"`

@@ -15,7 +15,7 @@ import (
 
 // Client is the client interface to access the Accounts API
 type Client interface {
-	Create(request DataRequest) (Single, error)
+	Create(request AccountData) (Single, error)
 	Fetch(id uuid.UUID) (Single, error)
 	List(page *Page, filter *Filter) (List, error)
 	Delete(id uuid.UUID, version int) (bool, error)
@@ -35,14 +35,14 @@ const path = "/v1/organisation/accounts"
 // Create an account
 //
 // The request is pre-validated to avoid unnecessary Bad Request
-func (s Service) Create(request DataRequest) (Single, error) {
+func (s Service) Create(request AccountData) (Single, error) {
 
-	if err := validateAccount(request.Data.Attributes); err != nil {
+	if err := validateAccount(request.Attributes); err != nil {
 		return Single{}, err
 	}
 
 	req := new(bytes.Buffer)
-	json.NewEncoder(req).Encode(request)
+	json.NewEncoder(req).Encode(AccountDataRequest{AccountData: request})
 	resp, err := httpClient.Post(fmt.Sprintf("%s%s", s.URL, path), "application/json", req)
 	if err != nil {
 		return Single{}, fmt.Errorf("An error has occured while creating account")

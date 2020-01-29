@@ -29,17 +29,17 @@ func TestCreateBareMinimumAccount(t *testing.T) {
 
 	Convey("When I create an account with only required fields", t, func() {
 		ID := uuid.New().String()
-		DataRequest := NewDataRequest(ID, OrganisationID)
-		resp, _ := AccountsService.Create(DataRequest)
+		AccountData := NewAccountData(ID, OrganisationID)
+		resp, _ := AccountsService.Create(AccountData)
 
 		Convey("Then the required account fields should equal", func() {
-			So(resp.Data.Attributes, ShouldResemble, DataRequest.Data.Attributes)
+			So(resp.AccountData.Attributes, ShouldResemble, AccountData.Attributes)
 		})
 
 		Convey("And the required data fields should equal", func() {
-			So(resp.Data.ID, ShouldEqual, ID)
-			So(resp.Data.OrganisationID, ShouldEqual, OrganisationID)
-			So(resp.Data.Type, ShouldEqual, Type)
+			So(resp.AccountData.ID, ShouldEqual, ID)
+			So(resp.AccountData.OrganisationID, ShouldEqual, OrganisationID)
+			So(resp.AccountData.Type, ShouldEqual, Type)
 		})
 
 	})
@@ -51,12 +51,12 @@ func TestCreateFullAccount(t *testing.T) {
 	Convey("When I create an account with all fields", t, func() {
 		ID := uuid.New().String()
 
-		DataRequest := NewFullDataRequest(ID)
+		AccountData := NewFullAccountData(ID)
 
-		resp, _ := AccountsService.Create(DataRequest)
+		resp, _ := AccountsService.Create(AccountData)
 
 		Convey("Then all the account fields should equal", func() {
-			So(resp.Data.Attributes, ShouldResemble, DataRequest.Data.Attributes)
+			So(resp.AccountData.Attributes, ShouldResemble, AccountData.Attributes)
 		})
 
 	})
@@ -66,9 +66,9 @@ func TestCreateFullAccount(t *testing.T) {
 func TestCreateFailure(t *testing.T) {
 
 	Convey("When I create an account on a non-existent server", t, func() {
-		DataRequest := NewDataRequest(uuid.New().String(), OrganisationID)
+		AccountData := NewAccountData(uuid.New().String(), OrganisationID)
 		AccountsService := Service{URL: "http://unknown:9999"}
-		_, err := AccountsService.Create(DataRequest)
+		_, err := AccountsService.Create(AccountData)
 
 		Convey("Then an appropriate error is propagated to the caller", func() {
 			So(err.Error(), ShouldEqual, "An error has occured while creating account")
@@ -83,12 +83,12 @@ func TestCreateDuplicateAccount(t *testing.T) {
 	Convey("Given I created an account", t, func() {
 		ID := uuid.New().String()
 
-		DataRequest := NewDataRequest(ID, OrganisationID)
+		AccountData := NewAccountData(ID, OrganisationID)
 
-		AccountsService.Create(DataRequest)
+		AccountsService.Create(AccountData)
 
 		Convey("When I create the account again with same ID", func() {
-			_, err := AccountsService.Create(DataRequest)
+			_, err := AccountsService.Create(AccountData)
 
 			Convey("Then an appropriate error is propagated to the caller", func() {
 				So(err.Error(), ShouldEqual, "Account cannot be created as it violates a duplicate constraint")
@@ -105,15 +105,14 @@ func TestCreateAccountWithInvalidCountry(t *testing.T) {
 	Convey("When I create an account with invalid Country", t, func() {
 		ID := uuid.New().String()
 
-		DataRequest := DataRequest{
-			Data: Data{
-				Attributes:     Account{Country: "GBR"},
-				ID:             ID,
-				Type:           Type,
-				OrganisationID: OrganisationID,
-			}}
+		AccountData := AccountData{
+			Attributes:     Account{Country: "GBR"},
+			ID:             ID,
+			Type:           Type,
+			OrganisationID: OrganisationID,
+		}
 
-		_, err := AccountsService.Create(DataRequest)
+		_, err := AccountsService.Create(AccountData)
 
 		Convey("Then an appropriate error is propagated to the caller", func() {
 			So(err.Error(), ShouldEqual, "Invalid Country [GBR]")
@@ -130,18 +129,17 @@ func TestCreateAccountWithInvalidBaseCurrency(t *testing.T) {
 
 		BaseCurrency := "GBPP"
 
-		DataRequest := DataRequest{
-			Data: Data{
-				Attributes: Account{
-					Country:      "GB",
-					BaseCurrency: &BaseCurrency,
-				},
-				ID:             ID,
-				Type:           Type,
-				OrganisationID: OrganisationID,
-			}}
+		AccountData := AccountData{
+			Attributes: Account{
+				Country:      "GB",
+				BaseCurrency: &BaseCurrency,
+			},
+			ID:             ID,
+			Type:           Type,
+			OrganisationID: OrganisationID,
+		}
 
-		_, err := AccountsService.Create(DataRequest)
+		_, err := AccountsService.Create(AccountData)
 
 		Convey("Then an appropriate error is propagated to the caller", func() {
 			So(err.Error(), ShouldEqual, "Invalid BaseCurrency [GBPP]")
@@ -158,18 +156,17 @@ func TestCreateAccountWithInvalidBankID(t *testing.T) {
 
 		BankID := "aStringLongerThanElevenCharacters"
 
-		DataRequest := DataRequest{
-			Data: Data{
-				Attributes: Account{
-					Country: "GB",
-					BankID:  &BankID,
-				},
-				ID:             ID,
-				Type:           Type,
-				OrganisationID: OrganisationID,
-			}}
+		AccountData := AccountData{
+			Attributes: Account{
+				Country: "GB",
+				BankID:  &BankID,
+			},
+			ID:             ID,
+			Type:           Type,
+			OrganisationID: OrganisationID,
+		}
 
-		_, err := AccountsService.Create(DataRequest)
+		_, err := AccountsService.Create(AccountData)
 
 		Convey("Then an appropriate error is propagated to the caller", func() {
 			So(err.Error(), ShouldEqual, "Invalid BankID [aStringLongerThanElevenCharacters]")
@@ -186,18 +183,17 @@ func TestCreateAccountWithInvalidBIC(t *testing.T) {
 
 		BIC := "aStringLongerThanElevenCharacters"
 
-		DataRequest := DataRequest{
-			Data: Data{
-				Attributes: Account{
-					Country: "GB",
-					BIC:     &BIC,
-				},
-				ID:             ID,
-				Type:           Type,
-				OrganisationID: OrganisationID,
-			}}
+		AccountData := AccountData{
+			Attributes: Account{
+				Country: "GB",
+				BIC:     &BIC,
+			},
+			ID:             ID,
+			Type:           Type,
+			OrganisationID: OrganisationID,
+		}
 
-		_, err := AccountsService.Create(DataRequest)
+		_, err := AccountsService.Create(AccountData)
 
 		Convey("Then an appropriate error is propagated to the caller", func() {
 			So(err.Error(), ShouldEqual, "Invalid BIC [aStringLongerThanElevenCharacters]")
@@ -214,18 +210,17 @@ func TestCreateAccountWithInvalidAccountClassification(t *testing.T) {
 
 		AccountClassification := "unknown"
 
-		DataRequest := DataRequest{
-			Data: Data{
-				Attributes: Account{
-					Country:               "GB",
-					AccountClassification: &AccountClassification,
-				},
-				ID:             ID,
-				Type:           Type,
-				OrganisationID: OrganisationID,
-			}}
+		AccountData := AccountData{
+			Attributes: Account{
+				Country:               "GB",
+				AccountClassification: &AccountClassification,
+			},
+			ID:             ID,
+			Type:           Type,
+			OrganisationID: OrganisationID,
+		}
 
-		_, err := AccountsService.Create(DataRequest)
+		_, err := AccountsService.Create(AccountData)
 
 		Convey("Then an appropriate error is propagated to the caller", func() {
 			So(err.Error(), ShouldEqual, "Invalid AccountClassification [unknown]")
@@ -242,18 +237,17 @@ func TestCreateAccountWithInvalidAlternativeBankAccountNames(t *testing.T) {
 
 		AlternativeBankAccountNames := []string{"Peters", "Michaels", "Johns", "Bens"}
 
-		DataRequest := DataRequest{
-			Data: Data{
-				Attributes: Account{
-					Country:                     "GB",
-					AlternativeBankAccountNames: &AlternativeBankAccountNames,
-				},
-				ID:             ID,
-				Type:           Type,
-				OrganisationID: OrganisationID,
-			}}
+		AccountData := AccountData{
+			Attributes: Account{
+				Country:                     "GB",
+				AlternativeBankAccountNames: &AlternativeBankAccountNames,
+			},
+			ID:             ID,
+			Type:           Type,
+			OrganisationID: OrganisationID,
+		}
 
-		_, err := AccountsService.Create(DataRequest)
+		_, err := AccountsService.Create(AccountData)
 
 		Convey("Then an appropriate error is propagated to the caller", func() {
 			So(err.Error(), ShouldEqual, "Invalid AlternativeBankAccountNames [Peters Michaels Johns Bens]")
@@ -268,14 +262,14 @@ func TestFetchBareMinimumAccount(t *testing.T) {
 	Convey("Given I created an account with only required fields", t, func() {
 		ID := uuid.New()
 
-		AccountsService.Create(NewDataRequest(ID.String(), OrganisationID))
+		AccountsService.Create(NewAccountData(ID.String(), OrganisationID))
 
 		Convey("When I fetch the account by ID", func() {
 
 			resp, _ := AccountsService.Fetch(ID)
 
 			Convey("Then the required account fields should equal", func() {
-				So(resp.Data.Attributes, ShouldResemble, Account{Country: "GB"})
+				So(resp.AccountData.Attributes, ShouldResemble, Account{Country: "GB"})
 			})
 
 		})
@@ -305,16 +299,16 @@ func TestFetchFullAccount(t *testing.T) {
 	Convey("Given I created an account with all fields", t, func() {
 		ID := uuid.New()
 
-		DataRequest := NewFullDataRequest(ID.String())
+		AccountData := NewFullAccountData(ID.String())
 
-		AccountsService.Create(DataRequest)
+		AccountsService.Create(AccountData)
 
 		Convey("When I fetch the account by ID", func() {
 
 			resp, _ := AccountsService.Fetch(ID)
 
 			Convey("Then the required account fields should equal", func() {
-				So(resp.Data.Attributes, ShouldResemble, DataRequest.Data.Attributes)
+				So(resp.AccountData.Attributes, ShouldResemble, AccountData.Attributes)
 			})
 
 		})
@@ -341,7 +335,7 @@ func TestDeleteAccount(t *testing.T) {
 	Convey("Given I created an account", t, func() {
 		ID := uuid.New()
 
-		AccountsService.Create(NewDataRequest(ID.String(), OrganisationID))
+		AccountsService.Create(NewAccountData(ID.String(), OrganisationID))
 
 		Convey("When I delete the account by ID", func() {
 
@@ -391,7 +385,7 @@ func TestDeleteNonExistentAccountVersion(t *testing.T) {
 	Convey("Given I created an account", t, func() {
 		ID := uuid.New()
 
-		AccountsService.Create(NewDataRequest(ID.String(), OrganisationID))
+		AccountsService.Create(NewAccountData(ID.String(), OrganisationID))
 
 		Convey("When I delete the account by ID and non-existent version", func() {
 
@@ -414,21 +408,21 @@ func TestListOneAccount(t *testing.T) {
 		OrganisationID := uuid.New().String()
 		ID := uuid.New().String()
 
-		DataRequest := NewDataRequest(ID, OrganisationID)
+		AccountData := NewAccountData(ID, OrganisationID)
 
-		AccountsService.Create(DataRequest)
+		AccountsService.Create(AccountData)
 
 		Convey("When I list the accounts of the organisation", func() {
 
 			resp, _ := AccountsService.List(nil, &Filter{OrganisationID: &OrganisationID})
 
 			Convey("Then the response should contain the account", func() {
-				So(len(*resp.Data), ShouldEqual, 1)
+				So(len(*resp.AccountData), ShouldEqual, 1)
 			})
 
 			Convey("And the account should match", func() {
-				dataArr := *resp.Data
-				So(dataArr[0].Attributes, ShouldResemble, Account{Country: "GB"})
+				accountDataArr := *resp.AccountData
+				So(accountDataArr[0].Attributes, ShouldResemble, Account{Country: "GB"})
 			})
 
 		})
@@ -460,7 +454,7 @@ func TestListZeroAccounts(t *testing.T) {
 		resp, _ := AccountsService.List(nil, &Filter{OrganisationID: &OrganisationID})
 
 		Convey("Then the response should contain no accounts", func() {
-			So(resp.Data, ShouldEqual, nil)
+			So(resp.AccountData, ShouldEqual, nil)
 		})
 
 	})
@@ -475,9 +469,9 @@ func TestListMultipleAccountsWithoutPaging(t *testing.T) {
 
 		for i := 0; i < 2; i++ {
 			ID := uuid.New().String()
-			DataRequest := NewDataRequest(ID, OrganisationID)
+			AccountData := NewAccountData(ID, OrganisationID)
 
-			AccountsService.Create(DataRequest)
+			AccountsService.Create(AccountData)
 		}
 
 		Convey("When I list the accounts of the organisation without using pagination", func() {
@@ -485,7 +479,7 @@ func TestListMultipleAccountsWithoutPaging(t *testing.T) {
 			resp, _ := AccountsService.List(nil, &Filter{OrganisationID: &OrganisationID})
 
 			Convey("Then the response should contain the two accounts", func() {
-				So(len(*resp.Data), ShouldEqual, 2)
+				So(len(*resp.AccountData), ShouldEqual, 2)
 			})
 
 		})
@@ -504,18 +498,17 @@ func TestListMultipleAccountsWithPaging(t *testing.T) {
 			ID := uuid.New().String()
 			BankID := strconv.Itoa(i)
 
-			DataRequest := DataRequest{
-				Data: Data{
-					Attributes: Account{
-						Country: "GB",
-						BankID:  &BankID,
-					},
-					ID:             ID,
-					Type:           Type,
-					OrganisationID: OrganisationID,
-				}}
+			AccountData := AccountData{
+				Attributes: Account{
+					Country: "GB",
+					BankID:  &BankID,
+				},
+				ID:             ID,
+				Type:           Type,
+				OrganisationID: OrganisationID,
+			}
 
-			AccountsService.Create(DataRequest)
+			AccountsService.Create(AccountData)
 		}
 
 		Convey("When I list the accounts of the organisation with page size 10", func() {
@@ -523,10 +516,10 @@ func TestListMultipleAccountsWithPaging(t *testing.T) {
 			resp, _ := AccountsService.List(&Page{Number: 0, Size: 10}, &Filter{OrganisationID: &OrganisationID})
 
 			Convey("Then the response should contain all accounts", func() {
-				dataArr := *resp.Data
-				So(len(dataArr), ShouldEqual, 10)
-				So(*dataArr[0].Attributes.BankID, ShouldEqual, "0")
-				So(*dataArr[9].Attributes.BankID, ShouldEqual, "9")
+				accountDataArr := *resp.AccountData
+				So(len(accountDataArr), ShouldEqual, 10)
+				So(*accountDataArr[0].Attributes.BankID, ShouldEqual, "0")
+				So(*accountDataArr[9].Attributes.BankID, ShouldEqual, "9")
 			})
 
 		})
@@ -536,10 +529,10 @@ func TestListMultipleAccountsWithPaging(t *testing.T) {
 			resp, _ := AccountsService.List(&Page{Number: 0, Size: 5}, &Filter{OrganisationID: &OrganisationID})
 
 			Convey("Then the response should contain first 5 accounts", func() {
-				dataArr := *resp.Data
-				So(len(dataArr), ShouldEqual, 5)
-				So(*dataArr[0].Attributes.BankID, ShouldEqual, "0")
-				So(*dataArr[4].Attributes.BankID, ShouldEqual, "4")
+				accountDataArr := *resp.AccountData
+				So(len(accountDataArr), ShouldEqual, 5)
+				So(*accountDataArr[0].Attributes.BankID, ShouldEqual, "0")
+				So(*accountDataArr[4].Attributes.BankID, ShouldEqual, "4")
 			})
 
 		})
@@ -549,10 +542,10 @@ func TestListMultipleAccountsWithPaging(t *testing.T) {
 			resp, _ := AccountsService.List(&Page{Number: 0, Size: 15}, &Filter{OrganisationID: &OrganisationID})
 
 			Convey("Then the response should contain all accounts", func() {
-				dataArr := *resp.Data
-				So(len(dataArr), ShouldEqual, 10)
-				So(*dataArr[0].Attributes.BankID, ShouldEqual, "0")
-				So(*dataArr[9].Attributes.BankID, ShouldEqual, "9")
+				accountDataArr := *resp.AccountData
+				So(len(accountDataArr), ShouldEqual, 10)
+				So(*accountDataArr[0].Attributes.BankID, ShouldEqual, "0")
+				So(*accountDataArr[9].Attributes.BankID, ShouldEqual, "9")
 			})
 
 		})
@@ -562,10 +555,10 @@ func TestListMultipleAccountsWithPaging(t *testing.T) {
 			resp, _ := AccountsService.List(&Page{Number: 1, Size: 5}, &Filter{OrganisationID: &OrganisationID})
 
 			Convey("Then the response should contain last 5 accounts", func() {
-				dataArr := *resp.Data
-				So(len(dataArr), ShouldEqual, 5)
-				So(*dataArr[0].Attributes.BankID, ShouldEqual, "5")
-				So(*dataArr[4].Attributes.BankID, ShouldEqual, "9")
+				accountDataArr := *resp.AccountData
+				So(len(accountDataArr), ShouldEqual, 5)
+				So(*accountDataArr[0].Attributes.BankID, ShouldEqual, "5")
+				So(*accountDataArr[4].Attributes.BankID, ShouldEqual, "9")
 			})
 
 		})
@@ -575,10 +568,10 @@ func TestListMultipleAccountsWithPaging(t *testing.T) {
 			resp, _ := AccountsService.List(&Page{Number: 1, Size: 3}, &Filter{OrganisationID: &OrganisationID})
 
 			Convey("Then the response should contain the last 4-6th accounts", func() {
-				dataArr := *resp.Data
-				So(len(dataArr), ShouldEqual, 3)
-				So(*dataArr[0].Attributes.BankID, ShouldEqual, "3")
-				So(*dataArr[2].Attributes.BankID, ShouldEqual, "5")
+				accountDataArr := *resp.AccountData
+				So(len(accountDataArr), ShouldEqual, 3)
+				So(*accountDataArr[0].Attributes.BankID, ShouldEqual, "3")
+				So(*accountDataArr[2].Attributes.BankID, ShouldEqual, "5")
 			})
 
 		})
@@ -587,19 +580,18 @@ func TestListMultipleAccountsWithPaging(t *testing.T) {
 
 }
 
-func NewDataRequest(ID string, OrganisationID string) DataRequest {
+func NewAccountData(ID string, OrganisationID string) AccountData {
 
-	return DataRequest{
-		Data: Data{
-			Attributes:     Account{Country: "GB"},
-			ID:             ID,
-			Type:           Type,
-			OrganisationID: OrganisationID,
-		}}
+	return AccountData{
+		Attributes:     Account{Country: "GB"},
+		ID:             ID,
+		Type:           Type,
+		OrganisationID: OrganisationID,
+	}
 
 }
 
-func NewFullDataRequest(ID string) DataRequest {
+func NewFullAccountData(ID string) AccountData {
 
 	BaseCurrency := "GBP"
 	BankID := "400302"
@@ -636,12 +628,11 @@ func NewFullDataRequest(ID string) DataRequest {
 		SecondaryIdentification:     &SecondaryIdentification,
 	}
 
-	return DataRequest{
-		Data: Data{
-			Attributes:     Account,
-			ID:             ID,
-			Type:           Type,
-			OrganisationID: OrganisationID,
-		}}
+	return AccountData{
+		Attributes:     Account,
+		ID:             ID,
+		Type:           Type,
+		OrganisationID: OrganisationID,
+	}
 
 }
