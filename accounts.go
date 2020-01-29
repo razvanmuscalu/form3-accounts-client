@@ -58,7 +58,9 @@ func (s service) Create(request AccountData) (Single, error) {
 	}
 
 	req := new(bytes.Buffer)
-	json.NewEncoder(req).Encode(AccountDataRequest{AccountData: request})
+	if err := json.NewEncoder(req).Encode(AccountDataRequest{AccountData: request}); err != nil {
+		return Single{}, fmt.Errorf("An error has occured while encoding request")
+	}
 	resp, err := s.HTTPClient.Post(fmt.Sprintf("%s%s", s.GetURL(), path), "application/json", req)
 	if err != nil {
 		return Single{}, fmt.Errorf("An error has occured while creating account")
@@ -70,7 +72,9 @@ func (s service) Create(request AccountData) (Single, error) {
 	}
 
 	var result Single
-	json.NewDecoder(resp.Body).Decode(&result)
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return Single{}, fmt.Errorf("An error has occured while decoding response")
+	}
 
 	return result, nil
 
@@ -90,7 +94,9 @@ func (s service) Fetch(id uuid.UUID) (Single, error) {
 	}
 
 	var result Single
-	json.NewDecoder(resp.Body).Decode(&result)
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return Single{}, fmt.Errorf("An error has occured while decoding response")
+	}
 
 	return result, nil
 
@@ -110,7 +116,9 @@ func (s service) List(page *Page, filter *Filter) (List, error) {
 	}
 
 	var result List
-	json.NewDecoder(resp.Body).Decode(&result)
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return List{}, fmt.Errorf("An error has occured while decoding response")
+	}
 
 	return result, nil
 }
@@ -139,7 +147,9 @@ func (s service) Delete(id uuid.UUID, version int) (bool, error) {
 func decodeErrorResponse(resp *http.Response) error {
 	if !(resp.StatusCode == 200 || resp.StatusCode == 201 || resp.StatusCode == 204) {
 		var result ErrorResponse
-		json.NewDecoder(resp.Body).Decode(&result)
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			return fmt.Errorf("An error has occured while decoding error response")
+		}
 
 		return errors.New(result.ErrorMessage)
 	}
