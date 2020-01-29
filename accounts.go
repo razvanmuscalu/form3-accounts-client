@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
-	"time"
 
 	"github.com/google/uuid"
 )
@@ -22,12 +21,29 @@ type Client interface {
 }
 
 // Service implements Client
-type Service struct {
-	URL string
+type service struct {
+	URL        string
+	HTTPClient http.Client
 }
 
-var httpClient http.Client = http.Client{
-	Timeout: time.Second * 2,
+// NewClientWithURL return a new API client
+func NewClientWithURL(url string, httpClient http.Client) Client {
+	return service{
+		URL:        url,
+		HTTPClient: httpClient,
+	}
+}
+
+// NewClient return a new API client
+func NewClient(httpClient http.Client) Client {
+	return service{HTTPClient: httpClient}
+}
+
+func (s *service) GetURL() string {
+	if s.URL != "" {
+		return s.URL
+	}
+	return "http://localhost:8080"
 }
 
 const path = "/v1/organisation/accounts"
@@ -35,7 +51,7 @@ const path = "/v1/organisation/accounts"
 // Create an account
 //
 // The request is pre-validated to avoid unnecessary Bad Request
-func (s Service) Create(request AccountData) (Single, error) {
+func (s service) Create(request AccountData) (Single, error) {
 
 	if err := validateAccount(request.Attributes); err != nil {
 		return Single{}, err
@@ -43,7 +59,7 @@ func (s Service) Create(request AccountData) (Single, error) {
 
 	req := new(bytes.Buffer)
 	json.NewEncoder(req).Encode(AccountDataRequest{AccountData: request})
-	resp, err := httpClient.Post(fmt.Sprintf("%s%s", s.URL, path), "application/json", req)
+	resp, err := s.HTTPClient.Post(fmt.Sprintf("%s%s", s.GetURL(), path), "application/json", req)
 	if err != nil {
 		return Single{}, fmt.Errorf("An error has occured while creating account")
 	}
@@ -60,9 +76,9 @@ func (s Service) Create(request AccountData) (Single, error) {
 }
 
 // Fetch an account
-func (s Service) Fetch(id uuid.UUID) (Single, error) {
+func (s service) Fetch(id uuid.UUID) (Single, error) {
 
-	resp, err := httpClient.Get(fmt.Sprintf("%s%s/%s", s.URL, path, id))
+	resp, err := s.HTTPClient.Get(fmt.Sprintf("%s%s/%s", s.GetURL(), path, id))
 	if err != nil {
 		return Single{}, fmt.Errorf("An error has occured while fetching account")
 	}
@@ -79,9 +95,9 @@ func (s Service) Fetch(id uuid.UUID) (Single, error) {
 }
 
 // List accounts
-func (s Service) List(page *Page, filter *Filter) (List, error) {
+func (s service) List(page *Page, filter *Filter) (List, error) {
 
-	resp, err := httpClient.Get(buildListURL(s.URL, page, filter))
+	resp, err := s.HTTPClient.Get(buildListURL(s.GetURL(), page, filter))
 	if err != nil {
 		return List{}, fmt.Errorf("An error has occured while listing accounts")
 	}
@@ -97,14 +113,14 @@ func (s Service) List(page *Page, filter *Filter) (List, error) {
 }
 
 // Delete an account
-func (s Service) Delete(id uuid.UUID, version int) (bool, error) {
+func (s service) Delete(id uuid.UUID, version int) (bool, error) {
 
-	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s%s/%s?version=%s", s.URL, path, id, strconv.Itoa(version)), new(bytes.Buffer))
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s%s/%s?version=%s", s.GetURL(), path, id, strconv.Itoa(version)), new(bytes.Buffer))
 	if err != nil {
 		return false, fmt.Errorf("An error has occured while constructing delete request")
 	}
 
-	resp, err := httpClient.Do(req)
+	resp, err := s.HTTPClient.Do(req)
 	if err != nil {
 		return false, fmt.Errorf("An error has occured while deleting account")
 	}

@@ -2,9 +2,11 @@ package accounts
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -12,7 +14,10 @@ import (
 )
 
 var (
-	AccountsService = Service{URL: GetURL()}
+	HTTPClient = http.Client{
+		Timeout: time.Second * 2,
+	}
+	AccountsService = NewClientWithURL(GetURL(), HTTPClient)
 	OrganisationID  = uuid.New().String()
 	Type            = "accounts"
 )
@@ -67,7 +72,7 @@ func TestCreateFailure(t *testing.T) {
 
 	Convey("When I create an account on a non-existent server", t, func() {
 		AccountData := NewAccountData(uuid.New().String(), OrganisationID)
-		AccountsService := Service{URL: "http://unknown:9999"}
+		AccountsService := NewClientWithURL("http://unknown:9999", HTTPClient)
 		_, err := AccountsService.Create(AccountData)
 
 		Convey("Then an appropriate error is propagated to the caller", func() {
@@ -282,7 +287,7 @@ func TestFetchFailure(t *testing.T) {
 
 	Convey("When I fetch an account by ID on a non-existent server", t, func() {
 
-		AccountsService := Service{URL: "http://unknown:9999"}
+		AccountsService := NewClientWithURL("http://unknown:9999", HTTPClient)
 
 		_, err := AccountsService.Fetch(uuid.New())
 
@@ -355,7 +360,7 @@ func TestDeleteFailure(t *testing.T) {
 
 	Convey("When I delete an account by ID on a non-existent server", t, func() {
 
-		AccountsService := Service{URL: "http://unknown:9999"}
+		AccountsService := NewClientWithURL("http://unknown:9999", HTTPClient)
 
 		_, err := AccountsService.Delete(uuid.New(), 0)
 
@@ -434,7 +439,7 @@ func TestListOneAccount(t *testing.T) {
 func TestListFailure(t *testing.T) {
 
 	Convey("When I list the accounts of the organisation", t, func() {
-		AccountsService := Service{URL: "http://unknown:9999"}
+		AccountsService := NewClientWithURL("http://unknown:9999", HTTPClient)
 		_, err := AccountsService.List(nil, nil)
 
 		Convey("The an appropriate error is propagated to the caller", func() {
