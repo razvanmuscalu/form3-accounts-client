@@ -63,6 +63,7 @@ func (s service) Create(request AccountData) (Single, error) {
 	if err != nil {
 		return Single{}, fmt.Errorf("An error has occured while creating account")
 	}
+	defer resp.Body.Close()
 
 	if err := decodeErrorResponse(resp); err != nil {
 		return Single{}, err
@@ -82,6 +83,7 @@ func (s service) Fetch(id uuid.UUID) (Single, error) {
 	if err != nil {
 		return Single{}, fmt.Errorf("An error has occured while fetching account")
 	}
+	defer resp.Body.Close()
 
 	if err := decodeErrorResponse(resp); err != nil {
 		return Single{}, err
@@ -101,6 +103,7 @@ func (s service) List(page *Page, filter *Filter) (List, error) {
 	if err != nil {
 		return List{}, fmt.Errorf("An error has occured while listing accounts")
 	}
+	defer resp.Body.Close()
 
 	if err := decodeErrorResponse(resp); err != nil {
 		return List{}, err
@@ -124,6 +127,7 @@ func (s service) Delete(id uuid.UUID, version int) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("An error has occured while deleting account")
 	}
+	defer resp.Body.Close()
 
 	if err := decodeErrorResponse(resp); err != nil {
 		return false, err
