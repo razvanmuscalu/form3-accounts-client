@@ -1,10 +1,5 @@
 package accounts
 
-// AccountDataRequest is the request payload used when creating an account
-type AccountDataRequest struct {
-	AccountData accountData `json:"data"`
-}
-
 // Single is the response payload when fetching an individual account
 type Single struct {
 	AccountData accountData `json:"data"`
@@ -15,17 +10,6 @@ type Single struct {
 type List struct {
 	AccountData *[]accountData `json:"data,omitempty"`
 	Links       Links          `json:"links"`
-}
-
-// Page holds the requested page number and size on the List function
-type Page struct {
-	Number int
-	Size   int
-}
-
-// Filter holds the requested filter on the List function
-type Filter struct {
-	OrganisationID *string
 }
 
 // Links holds pointers to the first, last and self objects returned in the response

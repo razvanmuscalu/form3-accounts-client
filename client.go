@@ -12,6 +12,17 @@ import (
 	"github.com/google/uuid"
 )
 
+// Page holds the requested page number and size on the List function
+type Page struct {
+	Number int
+	Size   int
+}
+
+// Filter holds the requested filter on the List function
+type Filter struct {
+	OrganisationID *string
+}
+
 // Client is the client interface to access the Accounts API
 type Client interface {
 	Create(request accountData) (Single, error)
@@ -71,7 +82,7 @@ func (c client) Create(request accountData) (Single, error) {
 	}
 
 	req := new(bytes.Buffer)
-	if err := json.NewEncoder(req).Encode(AccountDataRequest{AccountData: request}); err != nil {
+	if err := json.NewEncoder(req).Encode(NewAccountDataRequest().AccountData(request).Build()); err != nil {
 		return Single{}, fmt.Errorf("An error has occured while encoding request")
 	}
 	resp, err := c.httpClient.Post(fmt.Sprintf("%s%s", c.url, path), "application/json", req)
