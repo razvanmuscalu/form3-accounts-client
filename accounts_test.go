@@ -17,7 +17,7 @@ var (
 	HTTPClient = http.Client{
 		Timeout: time.Second * 2,
 	}
-	AccountsService = NewClientWithURL(GetURL(), HTTPClient)
+	AccountsService = New().HTTPClient(HTTPClient).URL(GetURL()).Build()
 	OrganisationID  = uuid.New().String()
 	Type            = "accounts"
 )
@@ -72,7 +72,7 @@ func TestCreateFailure(t *testing.T) {
 
 	Convey("When I create an account on a non-existent server", t, func() {
 		AccountData := NewAccountData(uuid.New().String(), OrganisationID)
-		AccountsService := NewClientWithURL("http://unknown:9999", HTTPClient)
+		AccountsService := New().HTTPClient(HTTPClient).URL("http://unknown:9999").Build()
 		_, err := AccountsService.Create(AccountData)
 
 		Convey("Then an appropriate error is propagated to the caller", func() {
@@ -287,7 +287,7 @@ func TestFetchFailure(t *testing.T) {
 
 	Convey("When I fetch an account by ID on a non-existent server", t, func() {
 
-		AccountsService := NewClientWithURL("http://unknown:9999", HTTPClient)
+		AccountsService := New().HTTPClient(HTTPClient).URL("http://unknown:9999").Build()
 
 		_, err := AccountsService.Fetch(uuid.New())
 
@@ -360,7 +360,7 @@ func TestDeleteFailure(t *testing.T) {
 
 	Convey("When I delete an account by ID on a non-existent server", t, func() {
 
-		AccountsService := NewClientWithURL("http://unknown:9999", HTTPClient)
+		AccountsService := New().HTTPClient(HTTPClient).URL("http://unknown:9999").Build()
 
 		_, err := AccountsService.Delete(uuid.New(), 0)
 
@@ -439,7 +439,7 @@ func TestListOneAccount(t *testing.T) {
 func TestListFailure(t *testing.T) {
 
 	Convey("When I list the accounts of the organisation", t, func() {
-		AccountsService := NewClientWithURL("http://unknown:9999", HTTPClient)
+		AccountsService := New().HTTPClient(HTTPClient).URL("http://unknown:9999").Build()
 		_, err := AccountsService.List(nil, nil)
 
 		Convey("The an appropriate error is propagated to the caller", func() {
