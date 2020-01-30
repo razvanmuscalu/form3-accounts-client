@@ -14,7 +14,7 @@ import (
 
 // Client is the client interface to access the Accounts API
 type Client interface {
-	Create(request AccountData) (Single, error)
+	Create(request accountData) (Single, error)
 	Fetch(id uuid.UUID) (Single, error)
 	List(page *Page, filter *Filter) (List, error)
 	Delete(id uuid.UUID, version int) (bool, error)
@@ -54,8 +54,8 @@ func (cb *clientBuilder) Build() Client {
 	}
 }
 
-// New is used to create a ClientBuilder
-func New() ClientBuilder {
+// NewClient is used to create a ClientBuilder
+func NewClient() ClientBuilder {
 	return &clientBuilder{}
 }
 
@@ -64,7 +64,7 @@ const path = "/v1/organisation/accounts"
 // Create an account
 //
 // The request is pre-validated to avoid unnecessary Bad Request
-func (c client) Create(request AccountData) (Single, error) {
+func (c client) Create(request accountData) (Single, error) {
 
 	if err := validateAccount(request.Attributes); err != nil {
 		return Single{}, err
@@ -170,7 +170,7 @@ func decodeErrorResponse(resp *http.Response) error {
 	return nil
 }
 
-func validateAccount(account Account) error {
+func validateAccount(account account) error {
 	var validBIC = regexp.MustCompile(`^([A-Z]{6}[A-Z0-9]{2}|[A-Z]{6}[A-Z0-9]{5})$`)
 	if account.BIC != nil && validBIC.MatchString(*account.BIC) == false {
 		return fmt.Errorf("Invalid BIC [%s]", *account.BIC)

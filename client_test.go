@@ -17,7 +17,7 @@ var (
 	HTTPClient = http.Client{
 		Timeout: time.Second * 2,
 	}
-	AccountsService = New().HTTPClient(HTTPClient).URL(GetURL()).Build()
+	AccountsService = NewClient().HTTPClient(HTTPClient).URL(GetURL()).Build()
 	OrganisationID  = uuid.New().String()
 	Type            = "accounts"
 )
@@ -34,7 +34,14 @@ func TestCreateBareMinimumAccount(t *testing.T) {
 
 	Convey("When I create an account with only required fields", t, func() {
 		ID := uuid.New().String()
-		AccountData := NewAccountData(ID, OrganisationID)
+
+		AccountData := NewAccountData().
+			Attributes(NewAccount().Country("GB").Build()).
+			ID(ID).
+			Type(Type).
+			OrganisationID(OrganisationID).
+			Build()
+
 		resp, _ := AccountsService.Create(AccountData)
 
 		Convey("Then the required account fields should equal", func() {
@@ -56,7 +63,31 @@ func TestCreateFullAccount(t *testing.T) {
 	Convey("When I create an account with all fields", t, func() {
 		ID := uuid.New().String()
 
-		AccountData := NewFullAccountData(ID)
+		Account := NewAccount().
+			Country("GB").
+			BaseCurrency("GBP").
+			BankID("400302").
+			BankIDCode("GBDSC").
+			AccountNumber("10000004").
+			BIC("NWBKGB42").
+			IBAN("GB28NWBK40030212764204").
+			CustomerID("234").
+			Title("Sie").
+			FirstName("Mary-Jane Doe").
+			BankAccountName("Smith").
+			AlternativeBankAccountNames([]string{"Peters"}).
+			AccountClassification("Personal").
+			JointAccount(false).
+			AccountMatchingOptOut(false).
+			SecondaryIdentification("44516").
+			Build()
+
+		AccountData := NewAccountData().
+			Attributes(Account).
+			ID(ID).
+			Type(Type).
+			OrganisationID(OrganisationID).
+			Build()
 
 		resp, _ := AccountsService.Create(AccountData)
 
@@ -71,8 +102,14 @@ func TestCreateFullAccount(t *testing.T) {
 func TestCreateFailure(t *testing.T) {
 
 	Convey("When I create an account on a non-existent server", t, func() {
-		AccountData := NewAccountData(uuid.New().String(), OrganisationID)
-		AccountsService := New().HTTPClient(HTTPClient).URL("http://unknown:9999").Build()
+		AccountData := NewAccountData().
+			Attributes(NewAccount().Country("GB").Build()).
+			ID(uuid.New().String()).
+			Type(Type).
+			OrganisationID(OrganisationID).
+			Build()
+
+		AccountsService := NewClient().HTTPClient(HTTPClient).URL("http://unknown:9999").Build()
 		_, err := AccountsService.Create(AccountData)
 
 		Convey("Then an appropriate error is propagated to the caller", func() {
@@ -88,7 +125,12 @@ func TestCreateDuplicateAccount(t *testing.T) {
 	Convey("Given I created an account", t, func() {
 		ID := uuid.New().String()
 
-		AccountData := NewAccountData(ID, OrganisationID)
+		AccountData := NewAccountData().
+			Attributes(NewAccount().Country("GB").Build()).
+			ID(ID).
+			Type(Type).
+			OrganisationID(OrganisationID).
+			Build()
 
 		AccountsService.Create(AccountData)
 
@@ -110,12 +152,12 @@ func TestCreateAccountWithInvalidCountry(t *testing.T) {
 	Convey("When I create an account with invalid Country", t, func() {
 		ID := uuid.New().String()
 
-		AccountData := AccountData{
-			Attributes:     Account{Country: "GBR"},
-			ID:             ID,
-			Type:           Type,
-			OrganisationID: OrganisationID,
-		}
+		AccountData := NewAccountData().
+			Attributes(NewAccount().Country("GBR").Build()).
+			ID(ID).
+			Type(Type).
+			OrganisationID(OrganisationID).
+			Build()
 
 		_, err := AccountsService.Create(AccountData)
 
@@ -132,17 +174,12 @@ func TestCreateAccountWithInvalidBaseCurrency(t *testing.T) {
 	Convey("When I create an account with invalid BaseCurrency", t, func() {
 		ID := uuid.New().String()
 
-		BaseCurrency := "GBPP"
-
-		AccountData := AccountData{
-			Attributes: Account{
-				Country:      "GB",
-				BaseCurrency: &BaseCurrency,
-			},
-			ID:             ID,
-			Type:           Type,
-			OrganisationID: OrganisationID,
-		}
+		AccountData := NewAccountData().
+			Attributes(NewAccount().Country("GB").BaseCurrency("GBPP").Build()).
+			ID(ID).
+			Type(Type).
+			OrganisationID(OrganisationID).
+			Build()
 
 		_, err := AccountsService.Create(AccountData)
 
@@ -159,17 +196,12 @@ func TestCreateAccountWithInvalidBankID(t *testing.T) {
 	Convey("When I create an account with invalid BankID", t, func() {
 		ID := uuid.New().String()
 
-		BankID := "aStringLongerThanElevenCharacters"
-
-		AccountData := AccountData{
-			Attributes: Account{
-				Country: "GB",
-				BankID:  &BankID,
-			},
-			ID:             ID,
-			Type:           Type,
-			OrganisationID: OrganisationID,
-		}
+		AccountData := NewAccountData().
+			Attributes(NewAccount().Country("GB").BankID("aStringLongerThanElevenCharacters").Build()).
+			ID(ID).
+			Type(Type).
+			OrganisationID(OrganisationID).
+			Build()
 
 		_, err := AccountsService.Create(AccountData)
 
@@ -186,17 +218,12 @@ func TestCreateAccountWithInvalidBIC(t *testing.T) {
 	Convey("When I create an account with invalid BIC", t, func() {
 		ID := uuid.New().String()
 
-		BIC := "aStringLongerThanElevenCharacters"
-
-		AccountData := AccountData{
-			Attributes: Account{
-				Country: "GB",
-				BIC:     &BIC,
-			},
-			ID:             ID,
-			Type:           Type,
-			OrganisationID: OrganisationID,
-		}
+		AccountData := NewAccountData().
+			Attributes(NewAccount().Country("GB").BIC("aStringLongerThanElevenCharacters").Build()).
+			ID(ID).
+			Type(Type).
+			OrganisationID(OrganisationID).
+			Build()
 
 		_, err := AccountsService.Create(AccountData)
 
@@ -213,17 +240,12 @@ func TestCreateAccountWithInvalidAccountClassification(t *testing.T) {
 	Convey("When I create an account with invalid AccountClassification", t, func() {
 		ID := uuid.New().String()
 
-		AccountClassification := "unknown"
-
-		AccountData := AccountData{
-			Attributes: Account{
-				Country:               "GB",
-				AccountClassification: &AccountClassification,
-			},
-			ID:             ID,
-			Type:           Type,
-			OrganisationID: OrganisationID,
-		}
+		AccountData := NewAccountData().
+			Attributes(NewAccount().Country("GB").AccountClassification("unknown").Build()).
+			ID(ID).
+			Type(Type).
+			OrganisationID(OrganisationID).
+			Build()
 
 		_, err := AccountsService.Create(AccountData)
 
@@ -240,17 +262,12 @@ func TestCreateAccountWithInvalidAlternativeBankAccountNames(t *testing.T) {
 	Convey("When I create an account with invalid AlternativeBankAccountNames", t, func() {
 		ID := uuid.New().String()
 
-		AlternativeBankAccountNames := []string{"Peters", "Michaels", "Johns", "Bens"}
-
-		AccountData := AccountData{
-			Attributes: Account{
-				Country:                     "GB",
-				AlternativeBankAccountNames: &AlternativeBankAccountNames,
-			},
-			ID:             ID,
-			Type:           Type,
-			OrganisationID: OrganisationID,
-		}
+		AccountData := NewAccountData().
+			Attributes(NewAccount().Country("GB").AlternativeBankAccountNames([]string{"Peters", "Michaels", "Johns", "Bens"}).Build()).
+			ID(ID).
+			Type(Type).
+			OrganisationID(OrganisationID).
+			Build()
 
 		_, err := AccountsService.Create(AccountData)
 
@@ -267,14 +284,21 @@ func TestFetchBareMinimumAccount(t *testing.T) {
 	Convey("Given I created an account with only required fields", t, func() {
 		ID := uuid.New()
 
-		AccountsService.Create(NewAccountData(ID.String(), OrganisationID))
+		AccountData := NewAccountData().
+			Attributes(NewAccount().Country("GB").Build()).
+			ID(ID.String()).
+			Type(Type).
+			OrganisationID(OrganisationID).
+			Build()
+
+		AccountsService.Create(AccountData)
 
 		Convey("When I fetch the account by ID", func() {
 
 			resp, _ := AccountsService.Fetch(ID)
 
 			Convey("Then the required account fields should equal", func() {
-				So(resp.AccountData.Attributes, ShouldResemble, Account{Country: "GB"})
+				So(resp.AccountData.Attributes, ShouldResemble, NewAccount().Country("GB").Build())
 			})
 
 		})
@@ -287,7 +311,7 @@ func TestFetchFailure(t *testing.T) {
 
 	Convey("When I fetch an account by ID on a non-existent server", t, func() {
 
-		AccountsService := New().HTTPClient(HTTPClient).URL("http://unknown:9999").Build()
+		AccountsService := NewClient().HTTPClient(HTTPClient).URL("http://unknown:9999").Build()
 
 		_, err := AccountsService.Fetch(uuid.New())
 
@@ -304,7 +328,31 @@ func TestFetchFullAccount(t *testing.T) {
 	Convey("Given I created an account with all fields", t, func() {
 		ID := uuid.New()
 
-		AccountData := NewFullAccountData(ID.String())
+		Account := NewAccount().
+			Country("GB").
+			BaseCurrency("GBP").
+			BankID("400302").
+			BankIDCode("GBDSC").
+			AccountNumber("10000004").
+			BIC("NWBKGB42").
+			IBAN("GB28NWBK40030212764204").
+			CustomerID("234").
+			Title("Sie").
+			FirstName("Mary-Jane Doe").
+			BankAccountName("Smith").
+			AlternativeBankAccountNames([]string{"Peters"}).
+			AccountClassification("Personal").
+			JointAccount(false).
+			AccountMatchingOptOut(false).
+			SecondaryIdentification("44516").
+			Build()
+
+		AccountData := NewAccountData().
+			Attributes(Account).
+			ID(ID.String()).
+			Type(Type).
+			OrganisationID(OrganisationID).
+			Build()
 
 		AccountsService.Create(AccountData)
 
@@ -340,7 +388,14 @@ func TestDeleteAccount(t *testing.T) {
 	Convey("Given I created an account", t, func() {
 		ID := uuid.New()
 
-		AccountsService.Create(NewAccountData(ID.String(), OrganisationID))
+		AccountData := NewAccountData().
+			Attributes(NewAccount().Country("GB").Build()).
+			ID(ID.String()).
+			Type(Type).
+			OrganisationID(OrganisationID).
+			Build()
+
+		AccountsService.Create(AccountData)
 
 		Convey("When I delete the account by ID", func() {
 
@@ -360,7 +415,7 @@ func TestDeleteFailure(t *testing.T) {
 
 	Convey("When I delete an account by ID on a non-existent server", t, func() {
 
-		AccountsService := New().HTTPClient(HTTPClient).URL("http://unknown:9999").Build()
+		AccountsService := NewClient().HTTPClient(HTTPClient).URL("http://unknown:9999").Build()
 
 		_, err := AccountsService.Delete(uuid.New(), 0)
 
@@ -390,7 +445,14 @@ func TestDeleteNonExistentAccountVersion(t *testing.T) {
 	Convey("Given I created an account", t, func() {
 		ID := uuid.New()
 
-		AccountsService.Create(NewAccountData(ID.String(), OrganisationID))
+		AccountData := NewAccountData().
+			Attributes(NewAccount().Country("GB").Build()).
+			ID(ID.String()).
+			Type(Type).
+			OrganisationID(OrganisationID).
+			Build()
+
+		AccountsService.Create(AccountData)
 
 		Convey("When I delete the account by ID and non-existent version", func() {
 
@@ -413,7 +475,12 @@ func TestListOneAccount(t *testing.T) {
 		OrganisationID := uuid.New().String()
 		ID := uuid.New().String()
 
-		AccountData := NewAccountData(ID, OrganisationID)
+		AccountData := NewAccountData().
+			Attributes(NewAccount().Country("GB").Build()).
+			ID(ID).
+			Type(Type).
+			OrganisationID(OrganisationID).
+			Build()
 
 		AccountsService.Create(AccountData)
 
@@ -427,7 +494,7 @@ func TestListOneAccount(t *testing.T) {
 
 			Convey("And the account should match", func() {
 				accountDataArr := *resp.AccountData
-				So(accountDataArr[0].Attributes, ShouldResemble, Account{Country: "GB"})
+				So(accountDataArr[0].Attributes, ShouldResemble, NewAccount().Country("GB").Build())
 			})
 
 		})
@@ -439,7 +506,7 @@ func TestListOneAccount(t *testing.T) {
 func TestListFailure(t *testing.T) {
 
 	Convey("When I list the accounts of the organisation", t, func() {
-		AccountsService := New().HTTPClient(HTTPClient).URL("http://unknown:9999").Build()
+		AccountsService := NewClient().HTTPClient(HTTPClient).URL("http://unknown:9999").Build()
 		_, err := AccountsService.List(nil, nil)
 
 		Convey("The an appropriate error is propagated to the caller", func() {
@@ -474,7 +541,13 @@ func TestListMultipleAccountsWithoutPaging(t *testing.T) {
 
 		for i := 0; i < 2; i++ {
 			ID := uuid.New().String()
-			AccountData := NewAccountData(ID, OrganisationID)
+
+			AccountData := NewAccountData().
+				Attributes(NewAccount().Country("GB").Build()).
+				ID(ID).
+				Type(Type).
+				OrganisationID(OrganisationID).
+				Build()
 
 			AccountsService.Create(AccountData)
 		}
@@ -501,17 +574,13 @@ func TestListMultipleAccountsWithPaging(t *testing.T) {
 
 		for i := 0; i < 10; i++ {
 			ID := uuid.New().String()
-			BankID := strconv.Itoa(i)
 
-			AccountData := AccountData{
-				Attributes: Account{
-					Country: "GB",
-					BankID:  &BankID,
-				},
-				ID:             ID,
-				Type:           Type,
-				OrganisationID: OrganisationID,
-			}
+			AccountData := NewAccountData().
+				Attributes(NewAccount().Country("GB").BankID(strconv.Itoa(i)).Build()).
+				ID(ID).
+				Type(Type).
+				OrganisationID(OrganisationID).
+				Build()
 
 			AccountsService.Create(AccountData)
 		}
@@ -582,62 +651,5 @@ func TestListMultipleAccountsWithPaging(t *testing.T) {
 		})
 
 	})
-
-}
-
-func NewAccountData(ID string, OrganisationID string) AccountData {
-
-	return AccountData{
-		Attributes:     Account{Country: "GB"},
-		ID:             ID,
-		Type:           Type,
-		OrganisationID: OrganisationID,
-	}
-
-}
-
-func NewFullAccountData(ID string) AccountData {
-
-	BaseCurrency := "GBP"
-	BankID := "400302"
-	BankIDCode := "GBDSC"
-	AccountNumber := "10000004"
-	BIC := "NWBKGB42"
-	IBAN := "GB28NWBK40030212764204"
-	CustomerID := "234"
-	Title := "Sie"
-	FirstName := "Mary-Jane Doe"
-	BankAccountName := "Smith"
-	AlternativeBankAccountNames := []string{"Peters"}
-	AccountClassification := "Personal"
-	JointAccount := false
-	AccountMatchingOptOut := false
-	SecondaryIdentification := "44516"
-
-	Account := Account{
-		Country:                     "GB",
-		BaseCurrency:                &BaseCurrency,
-		BankID:                      &BankID,
-		BankIDCode:                  &BankIDCode,
-		AccountNumber:               &AccountNumber,
-		BIC:                         &BIC,
-		IBAN:                        &IBAN,
-		CustomerID:                  &CustomerID,
-		Title:                       &Title,
-		FirstName:                   &FirstName,
-		BankAccountName:             &BankAccountName,
-		AlternativeBankAccountNames: &AlternativeBankAccountNames,
-		AccountClassification:       &AccountClassification,
-		JointAccount:                &JointAccount,
-		AccountMatchingOptOut:       &AccountMatchingOptOut,
-		SecondaryIdentification:     &SecondaryIdentification,
-	}
-
-	return AccountData{
-		Attributes:     Account,
-		ID:             ID,
-		Type:           Type,
-		OrganisationID: OrganisationID,
-	}
 
 }
